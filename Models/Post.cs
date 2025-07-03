@@ -2,7 +2,7 @@ namespace BlogAPI.Models;
 
 public class Post(int id, string title, string content, string? slug, int userId, int categoryId)
 {
-  public required int Id = id;
+  public required int Id { get; set; } = id;
   public required string Title { get; set; } = title;
   public required string Content { get; set; } = content;
   public string? Slug { get; set; } = slug;

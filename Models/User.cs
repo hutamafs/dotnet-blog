@@ -1,14 +1,27 @@
 namespace BlogAPI.Models;
 
-public class User(string username, string email, string pw, string firstName, string lastName, string bio)
+public class User
 {
-  public required int Id;
-  public required string Username { get; set; } = username;
-  public required string Email { get; set; } = email;
-  public required string PasswordHash { get; set; } = pw;
-  public required string Firstname { get; set; } = firstName;
-  public string? Lastname { get; set; } = lastName;
-  public string? Bio { get; set; } = bio;
+
+  public User() { }
+
+  public User(string username, string email, string pw, string firstName, string? lastName, string? bio)
+  {
+    Username = username;
+    Email = email;
+    PasswordHash = pw;
+    Firstname = firstName;
+    Lastname = lastName;
+    Bio = bio;
+  }
+
+  public int Id { get; set; }
+  public string Username { get; set; } = default!;
+  public string Email { get; set; } = default!;
+  public string PasswordHash { get; set; } = default!;
+  public string Firstname { get; set; } = default!;
+  public string? Lastname { get; set; }
+  public string? Bio { get; set; }
   public DateTime CreatedAt { get; set; } = DateTime.Now;
   public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
