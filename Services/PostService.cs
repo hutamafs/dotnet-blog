@@ -1,13 +1,42 @@
 using BlogAPI.DTOs;
 using BlogAPI.Models;
+using BlogAPI.Repository;
 
 namespace BlogAPI.Services;
 
-public class PostService : IPostService
+public class PostService(IPostRepository repo) : IPostService
 {
-  public Task<Post> CreatePost(CreateUpdatePostRequest rq)
+  private readonly IPostRepository _repo = repo;
+  public async Task<Post> CreatePost(CreateUpdatePostRequest rq)
   {
-    throw new NotImplementedException();
+    try
+    {
+      var userExists = await _repo.IsUserIdExist(rq.UserId);
+
+      if (!userExists)
+      {
+        throw new HttpException("NotFound", 404, "User not found");
+      }
+
+      if (rq.CategoryId.HasValue)
+      {
+
+        var categoryExists = await _repo.IsCategoryIdExist(rq.CategoryId.Value);
+        if (!categoryExists)
+        {
+          throw new HttpException("NotFound", 404, "Category not found");
+        }
+      }
+
+      Post post = new(rq.Title, rq.Content, rq.Slug, rq.UserId, rq.CategoryId);
+      await _repo.CreatePostAsync(post);
+      return post;
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine("ERROR: " + ex.Message);
+      throw;
+    }
   }
 
   public Task<GetPostDetail?> GetPostById(int id)

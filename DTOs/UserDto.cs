@@ -1,5 +1,3 @@
-using BlogAPI.Models;
-
 namespace BlogAPI.DTOs;
 
 public class CreateUpdateUserRequest
