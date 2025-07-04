@@ -34,6 +34,8 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPostService, PostService>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddControllers(options =>
 {
   options.Filters.Add<ExceptionFilter>();

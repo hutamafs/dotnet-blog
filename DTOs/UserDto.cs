@@ -15,10 +15,10 @@ public class CreateUpdateUserRequest
 
 public class GetUserDetail
 {
-  public required int Id;
+  public required int Id { get; set; }
   public required string Email { get; set; }
   public required string Firstname { get; set; }
   public string? Lastname { get; set; }
   public string? Bio { get; set; }
-  public required List<GetPostDetail> Posts;
+  public required List<GetPostDetail> Posts { get; set; }
 }
