@@ -34,8 +34,34 @@ public class PostService(IPostRepository repo) : IPostService
     }
     catch (Exception ex)
     {
-      Console.WriteLine("ERROR: " + ex.Message);
-      throw;
+      throw new HttpException("error", 500, ex.Message);
+    }
+  }
+
+  public async Task<IEnumerable<GetPostDetail>> GetAllPosts()
+  {
+    try
+    {
+      var posts = await _repo.GetAllPosts();
+      return posts.Select(p => new GetPostDetail
+      {
+        Id = p.Id,
+        UserId = p.UserId,
+        User = p.User,
+        Title = p.Title,
+        Content = p.Content,
+        Slug = p.Slug,
+        Category = p.Category,
+        CategoryId = p.CategoryId,
+        IsPublised = p.IsPublised,
+        CreatedAt = p.CreatedAt,
+        UpdatedAt = p.UpdatedAt,
+        PublishedAt = p.PublishedAt
+      });
+    }
+    catch (Exception ex)
+    {
+      throw new HttpException("error", 500, ex.Message);
     }
   }
 

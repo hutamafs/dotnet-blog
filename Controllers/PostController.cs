@@ -41,4 +41,12 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
   //   return Ok(user);
   // }
 
+  [HttpGet]
+
+  public async Task<IActionResult> GetAllPosts()
+  {
+    var posts = await _service.GetAllPosts();
+    return Ok(posts);
+  }
+
 }
