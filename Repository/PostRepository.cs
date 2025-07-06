@@ -28,64 +28,64 @@ public class PostRepository(AppDbContext context) : IPostRepository
     return await _context.SaveChangesAsync() > 0;
   }
 
-  async Task<GetAllDataDto<Post>> IPostRepository.GetAllPosts(PostQueryParamDto q)
+  async Task<GetAllDataDto<Post>> IPostRepository.GetAllPosts(PostQueryParamDto query)
   {
     IQueryable<Post> postQuery = _context.Posts.Include(p => p.Category).Include(p => p.User);
 
-    if (!string.IsNullOrEmpty(q.Q))
+    if (!string.IsNullOrEmpty(query.Q))
     {
       postQuery = postQuery.Where(p =>
-        (p.Title != null && p.Title.Contains(q.Q)) ||
-        (p.Content != null && p.Content.Contains(q.Q)) ||
+        (p.Title != null && p.Title.Contains(query.Q)) ||
+        (p.Content != null && p.Content.Contains(query.Q)) ||
         (p.User != null && (
-          (!string.IsNullOrEmpty(p.User.Firstname) && p.User.Firstname.Contains(q.Q)) ||
-          (!string.IsNullOrEmpty(p.User.Lastname) && p.User.Lastname.Contains(q.Q))
+          (!string.IsNullOrEmpty(p.User.Firstname) && p.User.Firstname.Contains(query.Q)) ||
+          (!string.IsNullOrEmpty(p.User.Lastname) && p.User.Lastname.Contains(query.Q))
         )) ||
-        (p.Category != null && !string.IsNullOrEmpty(p.Category.Name) && p.Category.Name.Contains(q.Q))
+        (p.Category != null && !string.IsNullOrEmpty(p.Category.Name) && p.Category.Name.Contains(query.Q))
       );
     }
 
-    if (!string.IsNullOrEmpty(q.Title))
+    if (!string.IsNullOrEmpty(query.Title))
     {
-      postQuery = postQuery.Where(p => p.Title.Contains(q.Title));
+      postQuery = postQuery.Where(p => p.Title.Contains(query.Title));
     }
 
-    if (!string.IsNullOrEmpty(q.Content))
+    if (!string.IsNullOrEmpty(query.Content))
     {
-      postQuery = postQuery.Where(p => p.Content.Contains(q.Content));
+      postQuery = postQuery.Where(p => p.Content.Contains(query.Content));
     }
 
-    if (q.IsPublished != null)
+    if (query.IsPublished != null)
     {
-      postQuery = postQuery.Where(p => p.IsPublished == q.IsPublished);
+      postQuery = postQuery.Where(p => p.IsPublished == query.IsPublished);
     }
 
-    if (q.UserId.HasValue)
+    if (query.UserId.HasValue)
     {
-      postQuery = postQuery.Where(p => p.UserId == q.UserId);
+      postQuery = postQuery.Where(p => p.UserId == query.UserId);
     }
 
-    if (q.CreatedAt.HasValue)
+    if (query.CreatedAt.HasValue)
     {
-      postQuery = postQuery.Where(p => p.CreatedAt == q.CreatedAt);
+      postQuery = postQuery.Where(p => p.CreatedAt == query.CreatedAt);
     }
 
-    if (q.PublishedAt.HasValue)
+    if (query.PublishedAt.HasValue)
     {
-      postQuery = postQuery.Where(p => p.PublishedAt == q.PublishedAt);
+      postQuery = postQuery.Where(p => p.PublishedAt == query.PublishedAt);
     }
 
-    if (q.UpdatedAt.HasValue)
+    if (query.UpdatedAt.HasValue)
     {
-      postQuery = postQuery.Where(p => p.UpdatedAt == q.UpdatedAt);
+      postQuery = postQuery.Where(p => p.UpdatedAt == query.UpdatedAt);
     }
 
     var total = await postQuery.CountAsync();
-    var totalPages = (int)Math.Ceiling((double)total / q.Take);
+    var totalPages = (int)Math.Ceiling((double)total / query.Take);
 
     postQuery = postQuery
-    .Skip((q.PageNumber - 1) * q.Take)
-    .Take(q.Take);
+    .Skip((query.PageNumber - 1) * query.Take)
+    .Take(query.Take);
 
     var posts = await postQuery.ToListAsync();
     return new GetAllDataDto<Post>
@@ -93,13 +93,13 @@ public class PostRepository(AppDbContext context) : IPostRepository
       Data = posts,
       Total = total,
       TotalPages = totalPages,
-      PageNumber = q.PageNumber
+      PageNumber = query.PageNumber
     };
   }
 
   async Task<Post?> IPostRepository.GetByIdAsync(int id)
   {
-    return await _context.Posts.Include(b => b.Category).FirstOrDefaultAsync(p => p.Id == id);
+    return await _context.Posts.Include(p => p.User).Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
   }
 
   public async Task SaveChangesAsync()
@@ -107,8 +107,22 @@ public class PostRepository(AppDbContext context) : IPostRepository
     await _context.SaveChangesAsync();
   }
 
-  public Task<Post> UpdatePost(int id, Post post)
+  public async Task<Post?> UpdatePost(int id, Post post)
   {
-    throw new NotImplementedException();
+    Post? foundPost = await _context.Posts
+    .Include(p => p.User)
+    .Include(p => p.Category)
+    .FirstOrDefaultAsync(p => p.Id == id);
+
+    if (foundPost == null) return null;
+    foundPost.Title = post.Title;
+    foundPost.Content = post.Content;
+    foundPost.Slug = post.Slug;
+    foundPost.CategoryId = post.CategoryId;
+    foundPost.IsPublished = post.IsPublished;
+    foundPost.PublishedAt = post.PublishedAt;
+    foundPost.UpdatedAt = DateTime.Now;
+    await _context.SaveChangesAsync();
+    return post;
   }
 }

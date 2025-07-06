@@ -11,6 +11,6 @@ public interface IPostRepository
   Task<bool> IsCategoryIdExist(int id);
   Task CreatePostAsync(Post post);
   Task SaveChangesAsync();
-  Task<Post> UpdatePost(int id, Post post);
+  Task<Post?> UpdatePost(int id, Post post);
   Task<bool> DeletePost(Post post);
 }

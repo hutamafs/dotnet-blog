@@ -8,6 +8,7 @@ public class PostQueryParamDto
   public int PageNumber { get; set; } = 1;
   public int Take { get; set; } = 10;
   public string? Q { get; set; }
+  public string? Search { get; set; }
   public int? Id { get; set; }
   public string? Title { get; set; }
   public string? Content { get; set; }

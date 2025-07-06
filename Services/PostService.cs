@@ -8,45 +8,60 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
 {
   private readonly IPostRepository _postRepo = postRepo;
   private readonly IUserRepository _userRepo = userRepo;
-  public async Task<GetPostDetail> CreatePost(CreateUpdatePostRequest rq)
+
+  private static GetPostDetail FormatReturnPost(Post post, User user)
+  {
+    return new GetPostDetail
+    {
+      Id = post.Id,
+      Title = post.Title,
+      Content = post.Content,
+      Slug = post.Slug,
+      UserId = post.UserId,
+      Author = $"{user?.Firstname} {user?.Lastname}".Trim(),
+      CategoryName = post.Category?.Name,
+      IsPublished = post.IsPublished,
+      CreatedAt = post.CreatedAt,
+      UpdatedAt = post.UpdatedAt,
+      PublishedAt = post.PublishedAt,
+    };
+  }
+
+  private async Task<bool> CheckUserExists(int id)
+  {
+    var userExists = await _postRepo.IsUserIdExist(id);
+    if (!userExists)
+    {
+      throw new HttpException("NotFound", 404, "User not found");
+    }
+    return true;
+  }
+
+  private async Task<bool> CheckCategoryExists(int id)
+  {
+    var categoryExist = await _postRepo.IsCategoryIdExist(id);
+    if (!categoryExist)
+    {
+      throw new HttpException("NotFound", 404, "Category not found");
+    }
+    return true;
+  }
+
+  public async Task<GetPostDetail> CreatePost(CreatePostRequest rq)
   {
     try
     {
-      var userExists = await _postRepo.IsUserIdExist(rq.UserId);
-
-      if (!userExists)
-      {
-        throw new HttpException("NotFound", 404, "User not found");
-      }
-
+      await CheckUserExists(rq.UserId);
       if (rq.CategoryId.HasValue)
       {
-
-        var categoryExists = await _postRepo.IsCategoryIdExist(rq.CategoryId.Value);
-        if (!categoryExists)
-        {
-          throw new HttpException("NotFound", 404, "Category not found");
-        }
+        await CheckCategoryExists(rq.CategoryId.Value);
       }
 
       Post post = new(rq.Title, rq.Content, rq.Slug, rq.UserId, rq.CategoryId);
       await _postRepo.CreatePostAsync(post);
       var user = await _userRepo.GetByIdAsync(post.UserId)!;
 
-      return new GetPostDetail
-      {
-        Id = post.Id,
-        Title = post.Title,
-        Content = post.Content,
-        Slug = post.Slug,
-        UserId = post.UserId,
-        Author = $"{user?.Firstname} {user?.Lastname}".Trim(),
-        CategoryName = post.Category?.Name,
-        IsPublished = post.IsPublished,
-        CreatedAt = post.CreatedAt,
-        UpdatedAt = post.UpdatedAt,
-        PublishedAt = post.PublishedAt,
-      };
+      return FormatReturnPost(post, user!);
     }
     catch (Exception ex)
     {
@@ -59,20 +74,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     try
     {
       var result = await _postRepo.GetAllPosts(q);
-      var posts = result.Data.Select(p => new GetPostDetail
-      {
-        Id = p.Id,
-        Title = p.Title,
-        Content = p.Content,
-        Slug = p.Slug,
-        UserId = p.UserId,
-        Author = $"{p.User?.Firstname} {p.User?.Lastname}".Trim(),
-        CategoryName = p.Category?.Name,
-        IsPublished = p.IsPublished,
-        CreatedAt = p.CreatedAt,
-        UpdatedAt = p.UpdatedAt,
-        PublishedAt = p.PublishedAt,
-      });
+      var posts = result.Data.Select(p => FormatReturnPost(p, p.User!));
       return new GetAllDataDto<GetPostDetail>
       {
         PageNumber = q.PageNumber,
@@ -87,13 +89,39 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     }
   }
 
-  public Task<GetPostDetail?> GetPostById(int id)
+  public async Task<GetPostDetail?> GetPostById(int id)
   {
-    throw new NotImplementedException();
+    Post? post = await _postRepo.GetByIdAsync(id);
+    if (post == null) return null;
+    return FormatReturnPost(post, post.User!);
   }
 
-  public Task<Post> UpdatePost(int id, CreateUpdatePostRequest rq)
+  public async Task<GetPostDetail?> UpdatePost(int id, UpdatePostRequest rq)
   {
-    throw new NotImplementedException();
+    try
+    {
+      await CheckUserExists(rq.UserId);
+      if (rq.CategoryId.HasValue)
+      {
+        await CheckCategoryExists(rq.CategoryId.Value);
+      }
+      Post post = new()
+      {
+        Title = rq.Title,
+        Content = rq.Content,
+        Slug = rq.Slug,
+        UserId = rq.UserId,
+        CategoryId = rq.CategoryId,
+        IsPublished = rq.IsPublished,
+        PublishedAt = rq.PublishedAt
+      };
+      var result = await _postRepo.UpdatePost(id, post);
+      if (result == null) return null;
+      return FormatReturnPost(result, result.User!);
+    }
+    catch
+    {
+      throw new HttpException("error", 500, "failed to update the post");
+    }
   }
 }

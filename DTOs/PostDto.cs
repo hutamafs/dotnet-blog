@@ -1,8 +1,6 @@
-using BlogAPI.Models;
-
 namespace BlogAPI.DTOs;
 
-public class CreateUpdatePostRequest
+public class CreatePostRequest
 {
   public required string Title { get; set; }
   public required string Content { get; set; }
@@ -11,6 +9,18 @@ public class CreateUpdatePostRequest
 
   public int? CategoryId { get; set; }
 
+}
+
+public class UpdatePostRequest
+{
+  public required int UserId { get; set; }
+  public required string Title { get; set; }
+  public required string Content { get; set; }
+  public string? Slug { get; set; }
+  public int? CategoryId { get; set; }
+  public bool IsPublished { get; set; }
+
+  public DateTime? PublishedAt { get; set; }
 }
 
 public class GetPostDetail

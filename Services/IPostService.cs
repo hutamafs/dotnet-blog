@@ -6,6 +6,6 @@ public interface IPostService
 {
   Task<GetAllDataDto<GetPostDetail>> GetAllPosts(PostQueryParamDto q);
   Task<GetPostDetail?> GetPostById(int id);
-  Task<GetPostDetail> CreatePost(CreateUpdatePostRequest rq);
-  Task<Post> UpdatePost(int id, CreateUpdatePostRequest rq);
+  Task<GetPostDetail> CreatePost(CreatePostRequest rq);
+  Task<GetPostDetail?> UpdatePost(int id, UpdatePostRequest rq);
 }
