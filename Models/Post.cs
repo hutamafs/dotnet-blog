@@ -21,7 +21,7 @@ public class Post
   public User? User { get; set; }
   public int? CategoryId { get; set; }
   public Category? Category { get; set; }
-  public bool IsPublised { get; set; } = false;
+  public bool IsPublished { get; set; } = false;
   public DateTime CreatedAt { get; set; } = DateTime.Now;
   public DateTime? PublishedAt { get; set; }
   public DateTime UpdatedAt { get; set; } = DateTime.Now;

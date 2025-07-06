@@ -43,9 +43,9 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
 
   [HttpGet]
 
-  public async Task<IActionResult> GetAllPosts()
+  public async Task<IActionResult> GetAllPosts([FromQuery] PostQueryParamDto q)
   {
-    var posts = await _service.GetAllPosts();
+    var posts = await _service.GetAllPosts(q);
     return Ok(posts);
   }
 

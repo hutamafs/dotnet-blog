@@ -38,26 +38,32 @@ public class PostService(IPostRepository repo) : IPostService
     }
   }
 
-  public async Task<IEnumerable<GetPostDetail>> GetAllPosts()
+  public async Task<GetAllDataDto<GetPostDetail>> GetAllPosts(PostQueryParamDto q)
   {
     try
     {
-      var posts = await _repo.GetAllPosts();
-      return posts.Select(p => new GetPostDetail
+      var result = await _repo.GetAllPosts(q);
+      var posts = result.Data.Select(p => new GetPostDetail
       {
         Id = p.Id,
-        UserId = p.UserId,
-        User = p.User,
         Title = p.Title,
         Content = p.Content,
         Slug = p.Slug,
-        Category = p.Category,
-        CategoryId = p.CategoryId,
-        IsPublised = p.IsPublised,
+        UserId = p.UserId,
+        Author = $"{p.User?.Firstname} {p.User?.Lastname}".Trim(),
+        CategoryName = p.Category?.Name,
+        IsPublished = p.IsPublished,
         CreatedAt = p.CreatedAt,
         UpdatedAt = p.UpdatedAt,
-        PublishedAt = p.PublishedAt
+        PublishedAt = p.PublishedAt,
       });
+      return new GetAllDataDto<GetPostDetail>
+      {
+        PageNumber = q.PageNumber,
+        TotalPages = result.TotalPages,
+        Data = posts,
+        Total = result.Total,
+      };
     }
     catch (Exception ex)
     {

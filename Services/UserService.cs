@@ -44,7 +44,7 @@ public class UserService(IUserRepository repo) : IUserService
         Title = p.Title,
         Content = p.Content,
         Slug = p.Slug,
-        IsPublised = p.IsPublised,
+        IsPublished = p.IsPublished,
         CreatedAt = p.CreatedAt,
         UserId = user.Id,
         PublishedAt = p.PublishedAt ?? DateTime.MinValue,

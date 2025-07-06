@@ -4,7 +4,7 @@ namespace BlogAPI.Services;
 
 public interface IPostService
 {
-  Task<IEnumerable<GetPostDetail>> GetAllPosts();
+  Task<GetAllDataDto<GetPostDetail>> GetAllPosts(PostQueryParamDto q);
   Task<GetPostDetail?> GetPostById(int id);
   Task<Post> CreatePost(CreateUpdatePostRequest rq);
   Task<Post> UpdatePost(int id, CreateUpdatePostRequest rq);

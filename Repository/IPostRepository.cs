@@ -5,7 +5,7 @@ using BlogAPI.Models;
 
 public interface IPostRepository
 {
-  Task<IEnumerable<Post>> GetAllPosts();
+  Task<GetAllDataDto<Post>> GetAllPosts(PostQueryParamDto q);
   Task<Post?> GetByIdAsync(int id);
   Task<bool> IsUserIdExist(int id);
   Task<bool> IsCategoryIdExist(int id);
