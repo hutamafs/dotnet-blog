@@ -1,6 +1,7 @@
 using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using BlogAPI.Services;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogAPI.Controllers;
@@ -63,5 +64,19 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     return AcceptedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
   }
 
+  [HttpPatch("{id:int}")]
+  public async Task<IActionResult> UpdatePostStatus(int id, [FromBody] UpdatePostStatusRequest rq)
+  {
+    try
+    {
+      var success = await _service.UpdatePostStatus(id, rq.IsPublished);
+      if (success == null) return NotFound();
+      return NoContent();
+    }
+    catch (Exception ex)
+    {
+      return StatusCode(500, new { error = ex.Message });
+    }
+  }
 
 }

@@ -124,4 +124,28 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
       throw new HttpException("error", 500, "failed to update the post");
     }
   }
+
+  public async Task<Post?> GetPostModelById(int id)
+  {
+    return await _postRepo.GetByIdAsync(id);
+  }
+
+  public async Task<bool?> UpdatePostStatus(int id, bool IsPublished)
+  {
+    try
+    {
+      var post = await _postRepo.GetByIdAsync(id);
+      if (post == null) return null;
+
+      post.IsPublished = IsPublished;
+      post.UpdatedAt = DateTime.Now;
+      post.PublishedAt = DateTime.Now;
+      await _postRepo.SaveChangesAsync();
+      return true;
+    }
+    catch
+    {
+      throw new HttpException("error", 500, "failed to update post status");
+    }
+  }
 }

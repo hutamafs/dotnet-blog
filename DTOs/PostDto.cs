@@ -39,3 +39,8 @@ public class GetPostDetail
   public DateTime? UpdatedAt { get; set; }
 
 }
+
+public class UpdatePostStatusRequest
+{
+  public required bool IsPublished { get; set; }
+}

@@ -119,6 +119,7 @@ public class PostRepository(AppDbContext context) : IPostRepository
     foundPost.Content = post.Content;
     foundPost.Slug = post.Slug;
     foundPost.CategoryId = post.CategoryId;
+    foundPost.Category = await _context.Categories.FindAsync(post.CategoryId);
     foundPost.IsPublished = post.IsPublished;
     foundPost.PublishedAt = post.PublishedAt;
     foundPost.UpdatedAt = DateTime.Now;
