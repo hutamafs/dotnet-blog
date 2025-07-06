@@ -4,14 +4,15 @@ using BlogAPI.Repository;
 
 namespace BlogAPI.Services;
 
-public class PostService(IPostRepository repo) : IPostService
+public class PostService(IPostRepository postRepo, IUserRepository userRepo) : IPostService
 {
-  private readonly IPostRepository _repo = repo;
-  public async Task<Post> CreatePost(CreateUpdatePostRequest rq)
+  private readonly IPostRepository _postRepo = postRepo;
+  private readonly IUserRepository _userRepo = userRepo;
+  public async Task<GetPostDetail> CreatePost(CreateUpdatePostRequest rq)
   {
     try
     {
-      var userExists = await _repo.IsUserIdExist(rq.UserId);
+      var userExists = await _postRepo.IsUserIdExist(rq.UserId);
 
       if (!userExists)
       {
@@ -21,7 +22,7 @@ public class PostService(IPostRepository repo) : IPostService
       if (rq.CategoryId.HasValue)
       {
 
-        var categoryExists = await _repo.IsCategoryIdExist(rq.CategoryId.Value);
+        var categoryExists = await _postRepo.IsCategoryIdExist(rq.CategoryId.Value);
         if (!categoryExists)
         {
           throw new HttpException("NotFound", 404, "Category not found");
@@ -29,8 +30,23 @@ public class PostService(IPostRepository repo) : IPostService
       }
 
       Post post = new(rq.Title, rq.Content, rq.Slug, rq.UserId, rq.CategoryId);
-      await _repo.CreatePostAsync(post);
-      return post;
+      await _postRepo.CreatePostAsync(post);
+      var user = await _userRepo.GetByIdAsync(post.UserId)!;
+
+      return new GetPostDetail
+      {
+        Id = post.Id,
+        Title = post.Title,
+        Content = post.Content,
+        Slug = post.Slug,
+        UserId = post.UserId,
+        Author = $"{user?.Firstname} {user?.Lastname}".Trim(),
+        CategoryName = post.Category?.Name,
+        IsPublished = post.IsPublished,
+        CreatedAt = post.CreatedAt,
+        UpdatedAt = post.UpdatedAt,
+        PublishedAt = post.PublishedAt,
+      };
     }
     catch (Exception ex)
     {
@@ -42,7 +58,7 @@ public class PostService(IPostRepository repo) : IPostService
   {
     try
     {
-      var result = await _repo.GetAllPosts(q);
+      var result = await _postRepo.GetAllPosts(q);
       var posts = result.Data.Select(p => new GetPostDetail
       {
         Id = p.Id,
