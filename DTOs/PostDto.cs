@@ -5,10 +5,17 @@ public class CreatePostRequest
   public required string Title { get; set; }
   public required string Content { get; set; }
   public string? Slug { get; set; }
-  public required int UserId { get; set; }
 
   public int? CategoryId { get; set; }
+}
 
+public class CreatePostData
+{
+  public required string Title { get; set; }
+  public required string Content { get; set; }
+  public string? Slug { get; set; }
+  public required int UserId { get; set; }
+  public int? CategoryId { get; set; }
 }
 
 public class UpdatePostRequest

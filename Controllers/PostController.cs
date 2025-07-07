@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using BlogAPI.Services;
@@ -14,11 +15,22 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
   private readonly IPostService _service = service;
   private readonly IPostRepository _repo = repo;
 
+  [Authorize]
   [HttpPost]
   public async Task<IActionResult> CreatePost(CreatePostRequest rq)
   {
+    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
     var validator = new CreatePostValidator(_repo);
-    var validationResult = await validator.ValidateAsync(rq);
+    var postData = new CreatePostData
+    {
+      Title = rq.Title,
+      Content = rq.Content,
+      Slug = rq.Slug,
+      UserId = userId,
+      CategoryId = rq.CategoryId
+    };
+
+    var validationResult = await validator.ValidateAsync(postData);
     if (!validationResult.IsValid)
     {
       foreach (var error in validationResult.Errors)
@@ -28,11 +40,10 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
       return BadRequest(ModelState);
     }
 
-    var post = await _service.CreatePost(rq);
+    var post = await _service.CreatePost(postData);
     return CreatedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
   }
 
-  [Authorize]
   [HttpGet]
   public async Task<IActionResult> GetAllPosts([FromQuery] PostQueryParamDto query)
   {
@@ -63,22 +74,50 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     return Ok(post);
   }
 
+
+  [Authorize]
   [HttpPut("{id:int}")]
   public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostRequest rq)
   {
-    var validator = new UpdatePostValidator(_repo);
-    var validationResult = await validator.ValidateAsync(rq);
-    if (!validationResult.IsValid)
+    try
     {
-      foreach (var error in validationResult.Errors)
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+      var validator = new UpdatePostValidator(_repo);
+      var validationResult = await validator.ValidateAsync(rq);
+      if (!validationResult.IsValid)
       {
-        ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+        foreach (var error in validationResult.Errors)
+        {
+          ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+        }
+        return BadRequest(ModelState);
       }
-      return BadRequest(ModelState);
+
+      var post = await _service.UpdatePost(id, rq);
+      if (post == null) return NotFound();
+      if (post.UserId != rq.UserId)
+      {
+        return StatusCode(403, new ProblemDetails
+        {
+          Title = "Forbidden",
+          Status = 403,
+          Detail = "You do not have permission to update this post.",
+          Instance = HttpContext.Request.Path
+        });
+      }
+      return AcceptedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
     }
-    var post = await _service.UpdatePost(id, rq);
-    if (post == null) return NotFound();
-    return AcceptedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
+    catch (HttpException e)
+    {
+      return StatusCode(e.StatusCode, new ProblemDetails
+      {
+        Title = e.Title,
+        Status = e.StatusCode,
+        Detail = e.Message,
+        Instance = HttpContext.Request.Path
+      });
+    }
+
   }
 
   [HttpPatch("{id:int}")]

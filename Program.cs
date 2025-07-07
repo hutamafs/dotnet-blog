@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 var jwtSecret = builder.Configuration["JwtSettings:Secret"];
-var jwtKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+var jwtKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret!));
 builder.Services.AddSingleton(jwtKey);
 
 // Add services to the container.

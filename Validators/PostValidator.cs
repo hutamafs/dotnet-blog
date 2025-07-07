@@ -2,7 +2,7 @@ using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using FluentValidation;
 
-public class CreatePostValidator : AbstractValidator<CreatePostRequest>
+public class CreatePostValidator : AbstractValidator<CreatePostData>
 {
   private readonly IPostRepository _postRepository;
 

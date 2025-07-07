@@ -47,7 +47,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     return true;
   }
 
-  public async Task<GetPostDetail> CreatePost(CreatePostRequest rq)
+  public async Task<GetPostDetail> CreatePost(CreatePostData rq)
   {
     try
     {
@@ -59,7 +59,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
 
       Post post = new(rq.Title, rq.Content, rq.Slug, rq.UserId, rq.CategoryId);
       await _postRepo.CreatePostAsync(post);
-      var user = await _userRepo.GetByIdAsync(post.UserId)!;
+      var user = await _userRepo.GetByIdAsync(rq.UserId);
 
       return FormatReturnPost(post, user!);
     }
