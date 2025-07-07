@@ -1,6 +1,7 @@
 using BlogAPI.DTOs;
 using BlogAPI.Models;
 using BlogAPI.Repository;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BlogAPI.Services;
 
@@ -100,17 +101,19 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
   {
     try
     {
-      await CheckUserExists(rq.UserId);
+      var foundPost = await _postRepo.GetByIdAsync(id);
       if (rq.CategoryId.HasValue)
       {
         await CheckCategoryExists(rq.CategoryId.Value);
       }
+      if (foundPost == null) return null;
+
       Post post = new()
       {
         Title = rq.Title,
         Content = rq.Content,
         Slug = rq.Slug,
-        UserId = rq.UserId,
+        UserId = foundPost.UserId,
         CategoryId = rq.CategoryId,
         IsPublished = rq.IsPublished,
         PublishedAt = rq.PublishedAt

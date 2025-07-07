@@ -74,7 +74,6 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     return Ok(post);
   }
 
-
   [Authorize]
   [HttpPut("{id:int}")]
   public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostRequest rq)
@@ -95,7 +94,7 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
 
       var post = await _service.UpdatePost(id, rq);
       if (post == null) return NotFound();
-      if (post.UserId != rq.UserId)
+      if (post.UserId != userId)
       {
         return StatusCode(403, new ProblemDetails
         {
