@@ -1,6 +1,7 @@
 using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using BlogAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,11 +32,27 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     return CreatedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
   }
 
+  [Authorize]
   [HttpGet]
   public async Task<IActionResult> GetAllPosts([FromQuery] PostQueryParamDto query)
   {
-    var posts = await _service.GetAllPosts(query);
-    return Ok(posts);
+    try
+    {
+      var posts = await _service.GetAllPosts(query);
+      return Ok(posts);
+    }
+    catch (HttpException httpEx)
+    {
+
+      return StatusCode(httpEx.StatusCode, new ProblemDetails
+      {
+        Title = httpEx.Title,
+        Status = httpEx.StatusCode,
+        Detail = httpEx.Message,
+        Instance = HttpContext.Request.Path
+      });
+    }
+
   }
 
   [HttpGet("{id:int}")]

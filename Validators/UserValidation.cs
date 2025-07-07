@@ -2,6 +2,23 @@ using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using FluentValidation;
 
+public class LoginValidator : AbstractValidator<LoginRequest>
+{
+  private readonly IUserRepository _userRepository;
+
+  public LoginValidator(IUserRepository userRepository)
+  {
+    _userRepository = userRepository;
+
+    RuleFor(x => x.Password)
+      .NotEmpty().WithMessage("Password must not be empty");
+
+    RuleFor(x => x.Email)
+      .NotEmpty().WithMessage("email must not be empty")
+      .EmailAddress().WithMessage("invalid email format");
+  }
+}
+
 public class CreateUpdateValidator : AbstractValidator<CreateUpdateUserRequest>
 {
   private readonly IUserRepository _userRepository;

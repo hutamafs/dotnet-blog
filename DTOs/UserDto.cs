@@ -20,3 +20,15 @@ public class GetUserDetail
   public string? Bio { get; set; }
   public required List<GetPostDetail> Posts { get; set; }
 }
+
+public class LoginRequest
+{
+  public required string Email { get; set; }
+  public required string Password { get; set; }
+}
+
+public class LoginResponse
+{
+  public required string Email { get; set; }
+  public required string Access_token { get; set; }
+}

@@ -16,9 +16,9 @@ public class UserService(IUserRepository repo) : IUserService
 
     if (await _userRepo.IsUsernameTakenAsync(rq.Username))
       throw new HttpException("Conflict", 409, "Username already taken");
-    var hasher = new PasswordHasher<object>();
+    var hasher = new PasswordHasher<User>();
 
-    var user = new User(rq.Username, rq.Email, hasher.HashPassword(new object(), rq.Password), rq.Firstname, rq.Lastname, rq.Bio);
+    var user = new User(rq.Username, rq.Email, hasher.HashPassword(new User(), rq.Password), rq.Firstname, rq.Lastname, rq.Bio);
 
     await _userRepo.AddAsync(user);
     return user;

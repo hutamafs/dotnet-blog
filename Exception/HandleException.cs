@@ -44,7 +44,8 @@ public class ExceptionFilter : IExceptionFilter
       Instance = context.HttpContext.Request.Path
     })
     {
-      StatusCode = status
+      StatusCode = status,
+      ContentTypes = { "application/json" }
     };
 
     context.ExceptionHandled = true;
