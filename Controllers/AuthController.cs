@@ -1,21 +1,20 @@
 using BlogAPI.DTOs;
-using BlogAPI.Repository;
 using BlogAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using BlogAPI.Validators;
 
 namespace BlogAPI.Controllers;
 
 [ApiController]
 [Route("api/auth/login")]
-public class AuthController(IUserRepository repo, IJwtService service) : ControllerBase
+public class AuthController(IJwtService service) : ControllerBase
 {
   private readonly IJwtService _service = service;
-  private readonly IUserRepository _repo = repo;
 
   [HttpPost]
   public async Task<IActionResult> Register(LoginRequest rq)
   {
-    var validator = new LoginValidator(_repo);
+    var validator = new LoginValidator();
     var validationResult = await validator.ValidateAsync(rq);
     if (!validationResult.IsValid)
     {

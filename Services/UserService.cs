@@ -9,7 +9,7 @@ public class UserService(IUserRepository repo) : IUserService
 {
   private readonly IUserRepository _userRepo = repo;
 
-  public async Task<User> CreateUser(CreateUpdateUserRequest rq)
+  public async Task<User> CreateUser(CreateUserRequest rq)
   {
     if (await _userRepo.IsEmailTakenAsync(rq.Email))
       throw new HttpException("Conflict", 409, "Email already in use");
@@ -36,7 +36,41 @@ public class UserService(IUserRepository repo) : IUserService
       Lastname = user.Lastname,
       Bio = user.Bio,
       Posts = [.. user.Posts
-      .OrderByDescending(p => p.CreatedAt)
+      .OrderByDescending(p => p.UpdatedAt)
+      .Take(10)
+      .Select(p => new GetPostDetail
+      {
+        Id = p.Id,
+        Title = p.Title,
+        Content = p.Content,
+        Slug = p.Slug,
+        IsPublished = p.IsPublished,
+        CreatedAt = p.CreatedAt,
+        UserId = user.Id,
+        PublishedAt = p.PublishedAt ?? DateTime.MinValue,
+        UpdatedAt = p.UpdatedAt,
+      })],
+    };
+  }
+
+  public async Task<GetUserDetail?> UpdateUser(int id, UpdateUserProfileRequest rq)
+  {
+    User? user = await _userRepo.GetByIdAsync(id);
+    if (user == null) return null;
+    user.Bio = rq.Bio;
+    user.Firstname = rq.Firstname;
+    user.Lastname = rq.Lastname;
+
+    await _userRepo.SaveChangesAsync();
+    return new GetUserDetail
+    {
+      Id = user.Id,
+      Email = user.Email,
+      Firstname = user.Firstname,
+      Lastname = user.Lastname,
+      Bio = user.Bio,
+      Posts = [.. user.Posts
+      .OrderByDescending(p => p.UpdatedAt)
       .Take(10)
       .Select(p => new GetPostDetail
       {

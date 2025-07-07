@@ -1,14 +1,14 @@
+namespace BlogAPI.Validators;
+
 using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using FluentValidation;
 
 public class LoginValidator : AbstractValidator<LoginRequest>
 {
-  private readonly IUserRepository _userRepository;
 
-  public LoginValidator(IUserRepository userRepository)
+  public LoginValidator()
   {
-    _userRepository = userRepository;
 
     RuleFor(x => x.Password)
       .NotEmpty().WithMessage("Password must not be empty");
@@ -19,11 +19,11 @@ public class LoginValidator : AbstractValidator<LoginRequest>
   }
 }
 
-public class CreateUpdateValidator : AbstractValidator<CreateUpdateUserRequest>
+public class CreateUserValidator : AbstractValidator<CreateUserRequest>
 {
   private readonly IUserRepository _userRepository;
 
-  public CreateUpdateValidator(IUserRepository userRepository)
+  public CreateUserValidator(IUserRepository userRepository)
   {
     _userRepository = userRepository;
 
@@ -40,5 +40,17 @@ public class CreateUpdateValidator : AbstractValidator<CreateUpdateUserRequest>
     .MustAsync(async (email, cancellation) =>
       !await _userRepository.IsEmailTakenAsync(email))
     .WithMessage("email already exists");
+  }
+}
+
+public class UpdateUserProfileValidator : AbstractValidator<UpdateUserProfileRequest>
+{
+
+  public UpdateUserProfileValidator()
+  {
+
+    RuleFor(x => x.Firstname)
+      .NotEmpty().WithMessage("username must not be empty")
+      .MinimumLength(5).WithMessage("username is too short");
   }
 }

@@ -1,6 +1,6 @@
 namespace BlogAPI.DTOs;
 
-public class CreateUpdateUserRequest
+public class CreateUserRequest
 {
   public required string Username { get; set; }
   public required string Email { get; set; }
@@ -8,6 +8,23 @@ public class CreateUpdateUserRequest
   public required string Firstname { get; set; }
   public string? Lastname { get; set; }
   public string? Bio { get; set; }
+
+}
+
+public class UpdateUserProfileRequest
+{
+  public required string Firstname { get; set; }
+  public string? Lastname { get; set; }
+  public string? Bio { get; set; }
+
+}
+
+
+public class UpdatePasswordRequest
+{
+  public required string Email { get; set; }
+  public required string OldPassword { get; set; }
+  public string? NewPassword { get; set; }
 
 }
 
