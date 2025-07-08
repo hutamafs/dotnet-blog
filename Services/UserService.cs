@@ -1,4 +1,5 @@
 using BlogAPI.DTOs;
+using BlogAPI.Helper;
 using BlogAPI.Models;
 using BlogAPI.Repository;
 using Microsoft.AspNetCore.Identity;
@@ -38,18 +39,7 @@ public class UserService(IUserRepository repo) : IUserService
       Posts = [.. user.Posts
       .OrderByDescending(p => p.UpdatedAt)
       .Take(10)
-      .Select(p => new GetPostDetail
-      {
-        Id = p.Id,
-        Title = p.Title,
-        Content = p.Content,
-        Slug = p.Slug,
-        IsPublished = p.IsPublished,
-        CreatedAt = p.CreatedAt,
-        UserId = user.Id,
-        PublishedAt = p.PublishedAt ?? DateTime.MinValue,
-        UpdatedAt = p.UpdatedAt,
-      })],
+      .Select(p => FormatReturnPost.Map(p, user))],
     };
   }
 
@@ -72,18 +62,7 @@ public class UserService(IUserRepository repo) : IUserService
       Posts = [.. user.Posts
       .OrderByDescending(p => p.UpdatedAt)
       .Take(10)
-      .Select(p => new GetPostDetail
-      {
-        Id = p.Id,
-        Title = p.Title,
-        Content = p.Content,
-        Slug = p.Slug,
-        IsPublished = p.IsPublished,
-        CreatedAt = p.CreatedAt,
-        UserId = user.Id,
-        PublishedAt = p.PublishedAt ?? DateTime.MinValue,
-        UpdatedAt = p.UpdatedAt,
-      })],
+      .Select(p => FormatReturnPost.Map(p, user))],
     };
   }
 }

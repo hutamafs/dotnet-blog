@@ -1,6 +1,7 @@
 using BlogAPI.DTOs;
 using BlogAPI.Models;
 using BlogAPI.Repository;
+using BlogAPI.Helper;
 
 namespace BlogAPI.Services;
 
@@ -9,23 +10,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
   private readonly IPostRepository _postRepo = postRepo;
   private readonly IUserRepository _userRepo = userRepo;
 
-  private static GetPostDetail FormatReturnPost(Post post, User user)
-  {
-    return new GetPostDetail
-    {
-      Id = post.Id,
-      Title = post.Title,
-      Content = post.Content,
-      Slug = post.Slug,
-      UserId = post.UserId,
-      Author = $"{user?.Firstname} {user?.Lastname}".Trim(),
-      CategoryName = post.Category?.Name,
-      IsPublished = post.IsPublished,
-      CreatedAt = post.CreatedAt,
-      UpdatedAt = post.UpdatedAt,
-      PublishedAt = post.PublishedAt,
-    };
-  }
+
 
   private async Task<bool> CheckUserExists(int id)
   {
@@ -61,7 +46,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
       await _postRepo.CreatePostAsync(post);
       var user = await _userRepo.GetByIdAsync(rq.UserId);
 
-      return FormatReturnPost(post, user!);
+      return FormatReturnPost.Map(post, user!);
     }
     catch (Exception ex)
     {
@@ -74,7 +59,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     try
     {
       var result = await _postRepo.GetAllPosts(q);
-      var posts = result.Data.Select(p => FormatReturnPost(p, p.User!));
+      var posts = result.Data.Select(p => FormatReturnPost.Map(p, p.User!));
       return new GetAllDataDto<GetPostDetail>
       {
         PageNumber = q.PageNumber,
@@ -93,7 +78,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
   {
     Post? post = await _postRepo.GetByIdAsync(id);
     if (post == null) return null;
-    return FormatReturnPost(post, post.User!);
+    return FormatReturnPost.Map(post, post.User!);
   }
 
   public async Task<GetPostDetail?> UpdatePost(int id, UpdatePostRequest rq)
@@ -119,7 +104,7 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
       };
       var result = await _postRepo.UpdatePost(id, post);
       if (result == null) return null;
-      return FormatReturnPost(result, result.User!);
+      return FormatReturnPost.Map(result, result.User!);
     }
     catch
     {
