@@ -2,7 +2,6 @@ namespace BlogAPI.Repository;
 
 using System.Threading.Tasks;
 using BlogAPI.Data;
-using BlogAPI.DTOs;
 using BlogAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,8 +37,14 @@ public class CommentRepository(AppDbContext context) : ICommentRepository
     throw new NotImplementedException();
   }
 
-  public Task<Post?> UpdateCommentAsync(int id, Comment comment)
+  public async Task<Comment?> UpdateCommentAsync(int id, Comment comment)
   {
-    throw new NotImplementedException();
+    Comment? foundComment = await _context.Comments
+    .FirstOrDefaultAsync(c => c.Id == id);
+
+    if (foundComment == null) return null;
+    foundComment.Text = comment.Text;
+    await _context.SaveChangesAsync();
+    return comment;
   }
 }

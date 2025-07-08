@@ -141,13 +141,15 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     try
     {
       var response = await _postRepo.GetCommentsForPost(id, query);
+      Console.WriteLine(response.Data);
       var data = response.Data.Select(r => new GetCommentDetail
       {
         Id = r.Id,
         Text = r.Text,
         Author = r.User?.Username!,
         CommentAt = r.CreatedAt,
-        UpdatedAt = r.UpdatedAt
+        UpdatedAt = r.UpdatedAt,
+        UserId = r.UserId,
       });
       return new GetAllDataDto<GetCommentDetail>
       {

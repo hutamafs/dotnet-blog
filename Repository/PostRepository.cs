@@ -103,7 +103,12 @@ public class PostRepository(AppDbContext context) : IPostRepository
 
   async Task<Post?> IPostRepository.GetByIdAsync(int id)
   {
-    return await _context.Posts.Include(p => p.User).Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+    return await _context.Posts
+    .Include(p => p.User)
+    .Include(p => p.Category)
+    .Include(p => p.Comments)
+      .ThenInclude(c => c.User)
+    .FirstOrDefaultAsync(p => p.Id == id);
   }
 
   public async Task SaveChangesAsync()
@@ -134,7 +139,7 @@ public class PostRepository(AppDbContext context) : IPostRepository
   public async Task<GetAllDataDto<Comment>> GetCommentsForPost(int id, CommentQueryParamDto query)
   {
     IQueryable<Comment> commentQuery = _context.Comments
-    .Include(c => c.User).Where(c => c.PostId == id);
+    .Where(c => c.PostId == id).Include(c => c.User);
 
     var total = await commentQuery.CountAsync();
     commentQuery = commentQuery.Take(query.Take);

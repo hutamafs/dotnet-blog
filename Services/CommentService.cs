@@ -30,6 +30,7 @@ public class CommentService(ICommentRepository commentRepo, IUserRepository user
       Text = createdComment.Text,
       CommentAt = createdComment.CreatedAt,
       UpdatedAt = createdComment.UpdatedAt,
+      UserId = createdComment.UserId,
     };
   }
 
@@ -45,6 +46,38 @@ public class CommentService(ICommentRepository commentRepo, IUserRepository user
       Text = comment.Text,
       CommentAt = comment.CreatedAt,
       UpdatedAt = comment.UpdatedAt,
+      UserId = comment.UserId,
     };
+  }
+
+  public async Task<GetCommentDetail?> UpdateCommentById(int id, CreateUpdateCommentRequest rq)
+  {
+    try
+    {
+      Comment comment = new()
+      {
+        Id = id,
+        Text = rq.Text,
+        UserId = rq.UserId,
+        PostId = rq.PostId
+      };
+      var result = await _commentRepo.UpdateCommentAsync(id, comment);
+      if (result == null) return null;
+      var user = await _userRepo.GetByIdAsync(comment.UserId);
+      return new GetCommentDetail
+      {
+        Id = id,
+        Author = user?.Username!,
+        Text = comment.Text,
+        CommentAt = comment.CreatedAt,
+        UpdatedAt = comment.UpdatedAt,
+        UserId = user?.Id
+      };
+    }
+    catch (System.Exception)
+    {
+
+      throw;
+    }
   }
 }

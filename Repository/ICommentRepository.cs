@@ -1,6 +1,5 @@
 namespace BlogAPI.Repository;
 
-using BlogAPI.DTOs;
 using BlogAPI.Models;
 
 public interface ICommentRepository
@@ -9,6 +8,6 @@ public interface ICommentRepository
   Task<Comment?> GetCommentById(int id);
   Task<Comment> PostCommentAsync(Comment comment);
   Task SaveChangesAsync();
-  Task<Post?> UpdateCommentAsync(int id, Comment comment);
+  Task<Comment?> UpdateCommentAsync(int id, Comment comment);
   Task<bool> DeleteComment(int id);
 }

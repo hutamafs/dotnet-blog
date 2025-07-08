@@ -25,4 +25,17 @@ public class CreateUpdateCommentValidator : AbstractValidator<CreateUpdateCommen
     .MustAsync(async (PostId, cancellation) => await _commentRepository.IsPostIdExist(PostId))
     .WithMessage("post does not exist");
   }
+
+}
+
+public class UpdateCommentValidator : AbstractValidator<CreateUpdateCommentRequest>
+{
+
+  public UpdateCommentValidator()
+  {
+
+    RuleFor(x => x.Text)
+      .NotEmpty().WithMessage("comment must not be empty");
+  }
+
 }

@@ -55,4 +55,35 @@ public class CommentController(ICommentRepository commentRepo, ICommentService s
     return Ok(new ApiResponse<GetCommentDetail>(comment));
   }
 
+  [Authorize]
+  [HttpPut("{id:int}")]
+  public async Task<IActionResult> UpdatePost(int id, [FromBody] CreateUpdateCommentRequest rq)
+  {
+    try
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+      var validator = new UpdateCommentValidator();
+      var validationResult = await validator.ValidateAsync(rq);
+      if (!validationResult.IsValid)
+      {
+        foreach (var error in validationResult.Errors)
+        {
+          ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+        }
+        return BadRequest(ModelState);
+      }
+      rq.UserId = userId;
+      var foundComment = await _service.GetCommentById(id);
+      if (foundComment == null) return NotFound();
+      if (foundComment.UserId != userId) return ForbiddenPermissionFormat.ResponseFormat(HttpContext);
+      var comment = await _service.UpdateCommentById(id, rq);
+      return Ok(new ApiResponse<GetCommentDetail>(comment, 200, "successfully updated comment"));
+    }
+    catch (HttpException e)
+    {
+      return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
+    }
+
+  }
+
 }
