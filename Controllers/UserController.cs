@@ -30,28 +30,25 @@ public class UserController(IUserRepository repo, IUserService service) : Contro
       return BadRequest(ModelState);
     }
     var user = await _service.CreateUser(rq);
-    // return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-
-    return Created("", user);
+    var response = new ApiResponse<GetUserDetail>(user);
+    return CreatedAtAction(nameof(GetUserDetail), new { id = user.Id }, response);
   }
 
   [HttpGet("{id}")]
-
   public async Task<IActionResult> GetUserDetail(int id)
   {
     var user = await _service.GetUserDetail(id);
     if (user == null) return NotFound();
-    return Ok(user);
+    return Ok(new ApiResponse<GetUserDetail>(user));
   }
 
   [HttpGet("me")]
-
   public async Task<IActionResult> GetOwnDetail()
   {
     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
     var user = await _service.GetUserDetail(userId);
     if (user == null) return NotFound();
-    return Ok(user);
+    return Ok(new ApiResponse<GetUserDetail>(user));
   }
 
   [Authorize]
@@ -75,7 +72,7 @@ public class UserController(IUserRepository repo, IUserService service) : Contro
       var user = await _service.UpdateUser(userId, rq);
       if (user == null) return NotFound();
       if (user.Id != userId) ForbiddenPermissionFormat.ResponseFormat(HttpContext);
-      return AcceptedAtAction(nameof(GetOwnDetail), new { id = userId }, user);
+      return Ok(new ApiResponse<GetUserDetail>(user));
     }
     catch (HttpException e)
     {

@@ -5,6 +5,6 @@ namespace BlogAPI.Services;
 public interface IUserService
 {
   Task<GetUserDetail?> GetUserDetail(int id);
-  Task<User> CreateUser(CreateUserRequest rq);
+  Task<GetUserDetail> CreateUser(CreateUserRequest rq);
   Task<GetUserDetail?> UpdateUser(int id, UpdateUserProfileRequest rq);
 }

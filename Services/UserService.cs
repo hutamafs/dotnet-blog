@@ -10,7 +10,7 @@ public class UserService(IUserRepository repo) : IUserService
 {
   private readonly IUserRepository _userRepo = repo;
 
-  public async Task<User> CreateUser(CreateUserRequest rq)
+  public async Task<GetUserDetail> CreateUser(CreateUserRequest rq)
   {
     if (await _userRepo.IsEmailTakenAsync(rq.Email))
       throw new HttpException("Conflict", 409, "Email already in use");
@@ -22,7 +22,7 @@ public class UserService(IUserRepository repo) : IUserService
     var user = new User(rq.Username, rq.Email, hasher.HashPassword(new User(), rq.Password), rq.Firstname, rq.Lastname, rq.Bio);
 
     await _userRepo.AddAsync(user);
-    return user;
+    return FormatReturnUser.Map(user);
   }
 
   public async Task<GetUserDetail?> GetUserDetail(int id)
@@ -50,6 +50,7 @@ public class UserService(IUserRepository repo) : IUserService
     user.Bio = rq.Bio;
     user.Firstname = rq.Firstname;
     user.Lastname = rq.Lastname;
+    user.UpdatedAt = DateTime.Now;
 
     await _userRepo.SaveChangesAsync();
     return new GetUserDetail

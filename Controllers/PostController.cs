@@ -42,7 +42,8 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     }
 
     var post = await _service.CreatePost(postData);
-    return CreatedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
+    var response = new ApiResponse<GetPostDetail>(post);
+    return CreatedAtAction(nameof(GetPostDetail), new { id = post.Id }, response);
   }
 
   [HttpGet]
@@ -51,7 +52,7 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     try
     {
       var posts = await _service.GetAllPosts(query);
-      return Ok(posts);
+      return Ok(new ApiResponse<GetAllDataDto<GetPostDetail>>(posts));
     }
     catch (HttpException httpEx)
     {
@@ -72,7 +73,7 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
   {
     var post = await _service.GetPostById(id);
     if (post == null) return NotFound();
-    return Ok(post);
+    return Ok(new ApiResponse<GetPostDetail>(post));
   }
 
   [Authorize]
@@ -96,7 +97,7 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
       var post = await _service.UpdatePost(id, rq);
       if (post == null) return NotFound();
       if (post.UserId != userId) return ForbiddenPermissionFormat.ResponseFormat(HttpContext);
-      return AcceptedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
+      return Ok(new ApiResponse<GetPostDetail>(post));
     }
     catch (HttpException e)
     {
@@ -112,7 +113,7 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     {
       var success = await _service.UpdatePostStatus(id, rq.IsPublished);
       if (success == null) return NotFound();
-      return NoContent();
+      return Ok(new ApiResponse<object>(null, 200, "Post status updated"));
     }
     catch (Exception ex)
     {

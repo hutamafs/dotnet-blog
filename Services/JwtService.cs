@@ -17,10 +17,6 @@ public class JwtService(IUserRepository repo, SymmetricSecurityKey jwtKey) : IJw
   private string GenerateJwtToken(User user)
   {
     var tokenHandler = new JwtSecurityTokenHandler();
-    // var configuration = new ConfigurationBuilder()
-    //   .SetBasePath(Directory.GetCurrentDirectory())
-    //   .AddJsonFile("appsettings.json")
-    //   .Build();
     var tokenDescriptor = new SecurityTokenDescriptor
     {
       Subject = new ClaimsIdentity(

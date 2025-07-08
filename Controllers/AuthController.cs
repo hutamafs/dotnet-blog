@@ -2,6 +2,7 @@ using BlogAPI.DTOs;
 using BlogAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using BlogAPI.Validators;
+using BlogAPI.Helper;
 
 namespace BlogAPI.Controllers;
 
@@ -24,8 +25,8 @@ public class AuthController(IJwtService service) : ControllerBase
       }
       return BadRequest(ModelState);
     }
-    var token = await _service.LoginAndVerifyJwt(rq);
-    return Ok(token);
+    var loginResponse = await _service.LoginAndVerifyJwt(rq);
+    return Ok(new ApiResponse<LoginResponse>(loginResponse));
   }
 
 }
