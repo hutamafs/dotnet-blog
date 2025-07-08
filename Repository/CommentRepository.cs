@@ -16,11 +16,6 @@ public class CommentRepository(AppDbContext context) : ICommentRepository
     throw new NotImplementedException();
   }
 
-  public Task<GetAllDataDto<Post>> GetCommentsForPost(int id)
-  {
-    throw new NotImplementedException();
-  }
-
   public async Task<Comment?> GetCommentById(int id)
   {
     return await _context.Comments.FirstOrDefaultAsync(c => c.Id == id);

@@ -11,4 +11,6 @@ public interface IPostService
   Task<GetPostDetail?> UpdatePost(int id, UpdatePostRequest rq);
   Task<bool?> UpdatePostStatus(int id, bool status);
 
+  Task<GetAllDataDto<GetCommentDetail>> GetCommentsForPost(int id, CommentQueryParamDto query);
+
 }

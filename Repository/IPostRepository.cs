@@ -13,4 +13,5 @@ public interface IPostRepository
   Task SaveChangesAsync();
   Task<Post?> UpdatePost(int id, Post post);
   Task<bool> DeletePost(Post post);
+  Task<GetAllDataDto<Comment>> GetCommentsForPost(int id, CommentQueryParamDto query);
 }

@@ -76,6 +76,13 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
     return Ok(new ApiResponse<GetPostDetail>(post));
   }
 
+  [HttpGet("{id:int}/comments")]
+  public async Task<IActionResult> GetComments(int id, [FromQuery] CommentQueryParamDto query)
+  {
+    var comments = await _service.GetCommentsForPost(id, query);
+    return Ok(new ApiResponse<GetAllDataDto<GetCommentDetail>>(comments));
+  }
+
   [Authorize]
   [HttpPut("{id:int}")]
   public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostRequest rq)

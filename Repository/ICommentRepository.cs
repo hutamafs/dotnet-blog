@@ -6,7 +6,6 @@ using BlogAPI.Models;
 public interface ICommentRepository
 {
   Task<bool> IsPostIdExist(int id);
-  Task<GetAllDataDto<Post>> GetCommentsForPost(int id);
   Task<Comment?> GetCommentById(int id);
   Task<Comment> PostCommentAsync(Comment comment);
   Task SaveChangesAsync();

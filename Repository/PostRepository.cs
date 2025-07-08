@@ -130,4 +130,22 @@ public class PostRepository(AppDbContext context) : IPostRepository
     await _context.SaveChangesAsync();
     return post;
   }
+
+  public async Task<GetAllDataDto<Comment>> GetCommentsForPost(int id, CommentQueryParamDto query)
+  {
+    IQueryable<Comment> commentQuery = _context.Comments
+    .Include(c => c.User).Where(c => c.PostId == id);
+
+    var total = await commentQuery.CountAsync();
+    commentQuery = commentQuery.Take(query.Take);
+
+    var comments = await commentQuery.ToListAsync();
+    return new GetAllDataDto<Comment>
+    {
+      Data = comments,
+      Total = total,
+      TotalPages = 1,
+      PageNumber = 1
+    };
+  }
 }

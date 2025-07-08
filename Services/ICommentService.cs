@@ -5,5 +5,4 @@ public interface ICommentService
 {
   Task<GetCommentDetail> PostComment(CreateUpdateCommentRequest rq);
   Task<GetCommentDetail?> GetCommentById(int id);
-
 }

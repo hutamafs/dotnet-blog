@@ -135,4 +135,33 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
       throw new HttpException("error", 500, "failed to update post status");
     }
   }
+
+  public async Task<GetAllDataDto<GetCommentDetail>> GetCommentsForPost(int id, CommentQueryParamDto query)
+  {
+    try
+    {
+      var response = await _postRepo.GetCommentsForPost(id, query);
+      var data = response.Data.Select(r => new GetCommentDetail
+      {
+        Id = r.Id,
+        Text = r.Text,
+        Author = r.User?.Username!,
+        CommentAt = r.CreatedAt,
+        UpdatedAt = r.UpdatedAt
+      });
+      return new GetAllDataDto<GetCommentDetail>
+      {
+        Data = data,
+        PageNumber = 1,
+        TotalPages = 1,
+        Total = response.Total
+      };
+    }
+    catch (System.Exception)
+    {
+
+      throw;
+    }
+
+  }
 }
