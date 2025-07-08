@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BlogAPI.DTOs;
+using BlogAPI.Helper;
 using BlogAPI.Repository;
 using BlogAPI.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -94,27 +95,12 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
 
       var post = await _service.UpdatePost(id, rq);
       if (post == null) return NotFound();
-      if (post.UserId != userId)
-      {
-        return StatusCode(403, new ProblemDetails
-        {
-          Title = "Forbidden",
-          Status = 403,
-          Detail = "You do not have permission to update this post.",
-          Instance = HttpContext.Request.Path
-        });
-      }
+      if (post.UserId != userId) return ForbiddenPermissionFormat.ResponseFormat(HttpContext);
       return AcceptedAtAction(nameof(GetPostDetail), new { id = post.Id }, post);
     }
     catch (HttpException e)
     {
-      return StatusCode(e.StatusCode, new ProblemDetails
-      {
-        Title = e.Title,
-        Status = e.StatusCode,
-        Detail = e.Message,
-        Instance = HttpContext.Request.Path
-      });
+      return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
     }
 
   }

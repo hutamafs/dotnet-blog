@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+using BlogAPI.Helper;
 using Microsoft.AspNetCore.Mvc.Filters;
 public class HttpException : Exception
 {
@@ -36,17 +36,7 @@ public class ExceptionFilter : IExceptionFilter
       message = ex.Message;
     }
 
-    context.Result = new ObjectResult(new ProblemDetails
-    {
-      Title = title,
-      Status = status,
-      Detail = message,
-      Instance = context.HttpContext.Request.Path
-    })
-    {
-      StatusCode = status,
-      ContentTypes = { "application/json" }
-    };
+    context.Result = ErrorFormat.FormatErrorResponse(status, title, message, context.HttpContext);
 
     context.ExceptionHandled = true;
   }

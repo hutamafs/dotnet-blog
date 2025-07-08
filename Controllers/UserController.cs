@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BlogAPI.DTOs;
+using BlogAPI.Helper;
 using BlogAPI.Repository;
 using BlogAPI.Services;
 using BlogAPI.Validators;
@@ -73,28 +74,12 @@ public class UserController(IUserRepository repo, IUserService service) : Contro
 
       var user = await _service.UpdateUser(userId, rq);
       if (user == null) return NotFound();
-      if (user.Id != userId)
-      {
-        return StatusCode(403, new ProblemDetails
-        {
-          Title = "Forbidden",
-          Status = 403,
-          Detail = "You do not have permission to update this profile.",
-          Instance = HttpContext.Request.Path
-        });
-      }
+      if (user.Id != userId) ForbiddenPermissionFormat.ResponseFormat(HttpContext);
       return AcceptedAtAction(nameof(GetOwnDetail), new { id = userId }, user);
     }
     catch (HttpException e)
     {
-      return StatusCode(e.StatusCode, new ProblemDetails
-      {
-        Title = e.Title,
-        Status = e.StatusCode,
-        Detail = e.Message,
-        Instance = HttpContext.Request.Path
-      });
+      return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
     }
-
   }
 }
