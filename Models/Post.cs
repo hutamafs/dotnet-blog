@@ -25,5 +25,5 @@ public class Post
   public DateTime CreatedAt { get; set; } = DateTime.Now;
   public DateTime? PublishedAt { get; set; }
   public DateTime UpdatedAt { get; set; } = DateTime.Now;
-
+  public List<Like> LikedByUser { get; set; } = [];
 }

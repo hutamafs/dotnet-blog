@@ -26,5 +26,6 @@ public class User
   public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
   public List<Post> Posts { get; set; } = [];
+  public List<Like> LikedPosts { get; set; } = [];
 
 }
