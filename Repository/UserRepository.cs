@@ -1,5 +1,6 @@
 namespace BlogAPI.Repository;
 
+using BlogAPI.Data;
 using BlogAPI.Models;
 using Microsoft.EntityFrameworkCore;
 

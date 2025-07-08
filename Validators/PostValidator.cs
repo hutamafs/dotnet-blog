@@ -1,3 +1,5 @@
+namespace BlogAPI.Validators;
+
 using BlogAPI.DTOs;
 using BlogAPI.Repository;
 using FluentValidation;

@@ -43,7 +43,7 @@ public class GetPostDetail
   public DateTime? CreatedAt { get; set; }
   public DateTime? PublishedAt { get; set; }
   public DateTime? UpdatedAt { get; set; }
-
+  public List<GetCommentDetail> Comments { get; set; } = [];
 }
 
 public class UpdatePostStatusRequest

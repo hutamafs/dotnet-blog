@@ -3,6 +3,7 @@ using System;
 using BlogAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlogAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250708095053_CommentsAndLikes")]
+    partial class CommentsAndLikes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
@@ -176,7 +179,7 @@ namespace BlogAPI.Migrations
             modelBuilder.Entity("BlogAPI.Models.Comment", b =>
                 {
                     b.HasOne("BlogAPI.Models.Post", "Post")
-                        .WithMany("Comments")
+                        .WithMany()
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -230,8 +233,6 @@ namespace BlogAPI.Migrations
 
             modelBuilder.Entity("BlogAPI.Models.Post", b =>
                 {
-                    b.Navigation("Comments");
-
                     b.Navigation("LikedByUser");
                 });
 

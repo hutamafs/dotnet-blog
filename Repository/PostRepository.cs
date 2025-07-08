@@ -1,6 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using BlogAPI.DTOs;
 using BlogAPI.Models;
-using Microsoft.EntityFrameworkCore;
+using BlogAPI.Data;
 
 namespace BlogAPI.Repository;
 
@@ -30,7 +31,10 @@ public class PostRepository(AppDbContext context) : IPostRepository
 
   async Task<GetAllDataDto<Post>> IPostRepository.GetAllPosts(PostQueryParamDto query)
   {
-    IQueryable<Post> postQuery = _context.Posts.Include(p => p.Category).Include(p => p.User);
+    IQueryable<Post> postQuery = _context.Posts
+    .Include(p => p.Category)
+    .Include(p => p.User)
+    .Include(p => p.Comments);
 
     if (!string.IsNullOrEmpty(query.Q))
     {

@@ -26,4 +26,5 @@ public class Post
   public DateTime? PublishedAt { get; set; }
   public DateTime UpdatedAt { get; set; } = DateTime.Now;
   public List<Like> LikedByUser { get; set; } = [];
+  public List<Comment> Comments { get; set; } = [];
 }

@@ -20,6 +20,16 @@ public class FormatReturnPost
       CreatedAt = post.CreatedAt,
       UpdatedAt = post.UpdatedAt,
       PublishedAt = post.PublishedAt,
+      Comments = [.. post.Comments
+      .OrderByDescending(p => p.UpdatedAt)
+      .Take(20)
+      .Select(c => new GetCommentDetail {
+        Id = c.Id,
+        Text = c.Text,
+        Author = $"{user?.Firstname} {user?.Lastname}".Trim(),
+        CommentAt = c.CreatedAt,
+        UpdatedAt = c.UpdatedAt
+      })],
     };
   }
 }
