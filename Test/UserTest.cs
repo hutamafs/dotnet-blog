@@ -144,6 +144,7 @@ public class UserTest
   {
     var user = CreateSampleUser();
     var request = new UpdateUserProfileRequest { UserId = 1, Firstname = "new name" };
+    _mockRepo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(user);
     var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdateUser(3, request));
 
     Assert.Equal(403, exception.StatusCode);
