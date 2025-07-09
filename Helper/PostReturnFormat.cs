@@ -31,6 +31,13 @@ public class FormatReturnPost
         UpdatedAt = c.UpdatedAt,
         UserId = c.UserId
       })],
+      Likes = [ ..post.LikedByUser
+      .OrderByDescending(l => l.UpdatedAt)
+      .Select(l => new LikeByUserResponse {
+        LikedAt = l.CreatedAt,
+        Username = l.User?.Username,
+      })
+      ]
     };
   }
 }

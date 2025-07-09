@@ -44,6 +44,7 @@ public class GetPostDetail
   public DateTime? PublishedAt { get; set; }
   public DateTime? UpdatedAt { get; set; }
   public List<GetCommentDetail> Comments { get; set; } = [];
+  public List<LikeByUserResponse> Likes { get; set; } = [];
 }
 
 public class UpdatePostStatusRequest

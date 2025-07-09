@@ -34,6 +34,8 @@ public class PostRepository(AppDbContext context) : IPostRepository
     IQueryable<Post> postQuery = _context.Posts
     .Include(p => p.Category)
     .Include(p => p.User)
+    .Include(p => p.LikedByUser)
+      .ThenInclude(l => l.User)
     .Include(p => p.Comments);
 
     if (!string.IsNullOrEmpty(query.Q))
@@ -108,6 +110,8 @@ public class PostRepository(AppDbContext context) : IPostRepository
     .Include(p => p.Category)
     .Include(p => p.Comments)
       .ThenInclude(c => c.User)
+    .Include(p => p.LikedByUser)
+      .ThenInclude(l => l.User)
     .FirstOrDefaultAsync(p => p.Id == id);
   }
 

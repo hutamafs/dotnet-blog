@@ -11,10 +11,11 @@ namespace BlogAPI.Controllers;
 
 [ApiController]
 [Route("api/posts")]
-public class PostController(IPostRepository repo, IPostService service) : ControllerBase
+public class PostController(IPostRepository repo, ILikeService likeService, IPostService service) : ControllerBase
 {
   private readonly IPostService _service = service;
   private readonly IPostRepository _repo = repo;
+  private readonly ILikeService _likeService = likeService;
 
   [Authorize]
   [HttpPost]
@@ -81,6 +82,20 @@ public class PostController(IPostRepository repo, IPostService service) : Contro
   {
     var comments = await _service.GetCommentsForPost(id, query);
     return Ok(new ApiResponse<GetAllDataDto<GetCommentDetail>>(comments));
+  }
+
+  [HttpPost("{id:int}/like")]
+  public async Task<IActionResult> LikePost(int id)
+  {
+    await _likeService.LikePost(id, int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value));
+    return Ok(new ApiResponse<object>(null, 200, "post has been liked"));
+  }
+
+  [HttpDelete("{id:int}/like")]
+  public async Task<IActionResult> UnlikePost(int id)
+  {
+    await _likeService.UnlikePost(id, int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value));
+    return Ok(new ApiResponse<object>(null, 200, "post has been unliked"));
   }
 
   [Authorize]

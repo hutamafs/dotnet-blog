@@ -19,7 +19,6 @@ public class UpdateUserProfileRequest
 
 }
 
-
 public class UpdatePasswordRequest
 {
   public required string Email { get; set; }
@@ -48,4 +47,10 @@ public class LoginResponse
 {
   public required string Email { get; set; }
   public required string Access_token { get; set; }
+}
+
+public class LikeByUserResponse
+{
+  public required string Username { get; set; }
+  public required DateTime LikedAt { get; set; }
 }
