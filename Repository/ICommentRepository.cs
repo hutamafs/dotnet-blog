@@ -9,5 +9,5 @@ public interface ICommentRepository
   Task<Comment> PostCommentAsync(Comment comment);
   Task SaveChangesAsync();
   Task<Comment?> UpdateCommentAsync(int id, Comment comment);
-  Task<bool> DeleteComment(int id);
+  Task DeleteComment(int id);
 }

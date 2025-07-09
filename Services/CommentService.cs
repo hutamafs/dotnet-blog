@@ -80,4 +80,17 @@ public class CommentService(ICommentRepository commentRepo, IUserRepository user
       throw;
     }
   }
+
+  public async Task DeleteCommentById(int id)
+  {
+    try
+    {
+      await _commentRepo.DeleteComment(id);
+    }
+    catch (System.Exception)
+    {
+
+      throw;
+    }
+  }
 }

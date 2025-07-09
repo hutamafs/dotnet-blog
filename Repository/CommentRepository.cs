@@ -7,12 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 public class CommentRepository(AppDbContext context) : ICommentRepository
 {
-
   private readonly AppDbContext _context = context;
 
-  public Task<bool> DeleteComment(int id)
+  public async Task DeleteComment(int id)
   {
-    throw new NotImplementedException();
+    var comment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id);
+    _context.Comments.Remove(comment!);
+    await _context.SaveChangesAsync();
   }
 
   public async Task<Comment?> GetCommentById(int id)
@@ -32,9 +33,9 @@ public class CommentRepository(AppDbContext context) : ICommentRepository
     return comment;
   }
 
-  public Task SaveChangesAsync()
+  public async Task SaveChangesAsync()
   {
-    throw new NotImplementedException();
+    await _context.SaveChangesAsync();
   }
 
   public async Task<Comment?> UpdateCommentAsync(int id, Comment comment)
