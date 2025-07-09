@@ -104,7 +104,6 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
     {
       return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
     }
-
   }
 
   [Authorize]
@@ -127,5 +126,4 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
       return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
     }
   }
-
 }

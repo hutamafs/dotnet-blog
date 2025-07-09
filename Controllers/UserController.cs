@@ -68,10 +68,8 @@ public class UserController(IUserRepository repo, IUserService service) : Contro
         }
         return BadRequest(ModelState);
       }
-
       var user = await _service.UpdateUser(userId, rq);
       if (user == null) return NotFound();
-      if (user.Id != userId) ForbiddenPermissionFormat.ResponseFormat(HttpContext);
       return Ok(new ApiResponse<GetUserDetail>(user));
     }
     catch (HttpException e)

@@ -22,6 +22,31 @@ public class UserTest
     _output = output;
   }
 
+  private static CreateUserRequest GetUserRequest()
+  {
+    return new CreateUserRequest
+    {
+      Username = "hutama",
+      Email = "hutama@mail.com",
+      Password = "hutama",
+      Firstname = "hutama",
+      Lastname = "saputra"
+    };
+  }
+
+  private static User CreateUserFromRequest(CreateUserRequest UserRequest)
+  {
+    var hasher = new PasswordHasher<User>();
+    var hashedPassword = hasher.HashPassword(new User(), UserRequest.Password);
+
+    return new User(UserRequest.Username, UserRequest.Email, hashedPassword, UserRequest.Firstname, UserRequest.Lastname, "");
+  }
+
+  private static User CreateSampleUser()
+  {
+    return new User { Id = 1, Email = "test@mail.com", Firstname = "Test", Lastname = "User", Bio = "bio" };
+  }
+
   #region GetUserDetail Tests
   [Fact]
   [Trait("Category", "UserService")]
@@ -29,7 +54,7 @@ public class UserTest
   public async Task GetUserDetail_ReturnsUser_WhenUserExists()
   {
     // Arrange
-    var user = new User { Id = 1, Email = "test@mail.com", Firstname = "Test", Lastname = "User", Bio = "bio" };
+    var user = CreateSampleUser();
     _mockRepo.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
 
     // Act
@@ -45,7 +70,7 @@ public class UserTest
   [Trait("Method", "GetUserDetail")]
   public async Task GetUserDetail_ReturnsNull_WhenUserNotExists()
   {
-    var user = new User { Id = 1, Email = "test@mail.com", Firstname = "Test", Lastname = "User", Bio = "bio" };
+    var user = CreateSampleUser();
     _mockRepo.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
 
     var result = await _service.GetUserDetail(2);
@@ -56,22 +81,27 @@ public class UserTest
   #endregion
 
   #region RegisterUser Tests
+
+  [Fact]
+  [Trait("Category", "UserService")]
+  [Trait("Method", "CreateUser")]
+  public async Task CreateUser_ExistingEmail_Failed()
+  {
+    var UserRequest = GetUserRequest();
+    _mockRepo.Setup(r => r.IsEmailTakenAsync(UserRequest.Email)).ReturnsAsync(true);
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.CreateUser(UserRequest));
+
+    Assert.Equal(409, exception.StatusCode);
+    Assert.Equal("Email already in use", exception.Message);
+  }
+
   [Fact]
   [Trait("Category", "UserService")]
   [Trait("Method", "CreateUser")]
   public async Task CreateUser_ReturnsUserFormat_Successful()
   {
-    var UserRequest = new CreateUserRequest
-    {
-      Username = "hutama",
-      Email = "hutama@mail.com",
-      Password = "hutama",
-      Firstname = "hutama",
-      Lastname = "saputra"
-    };
-    var hasher = new PasswordHasher<User>();
-    var hashedPassword = hasher.HashPassword(new User(), UserRequest.Password);
-    var user = new User(UserRequest.Username, UserRequest.Email, hashedPassword, UserRequest.Firstname, UserRequest.Lastname, "");
+    var UserRequest = GetUserRequest();
+    var user = CreateUserFromRequest(UserRequest);
     _mockRepo.Setup(r => r.IsEmailTakenAsync(UserRequest.Email)).ReturnsAsync(false);
     _mockRepo.Setup(r => r.IsUsernameTakenAsync(UserRequest.Username)).ReturnsAsync(false);
     _mockRepo.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
@@ -88,4 +118,37 @@ public class UserTest
   }
 
   #endregion
+
+  #region UpdateUser Tests
+  [Trait("Category", "UserService")]
+  [Trait("Method", "UpdatePersonalDetail")]
+  [Fact]
+  public async Task UpdatePersonalDetail_Successful()
+  {
+    var userId = 1;
+    var user = CreateSampleUser();
+    var request = new UpdateUserProfileRequest { UserId = 1, Firstname = "new name" };
+    _mockRepo.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
+    _mockRepo.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+
+    var result = await _service.UpdateUser(userId, request);
+
+    Assert.NotNull(result);
+    Assert.Equal(user.Firstname, result.Firstname);
+    _mockRepo.Verify(r => r.GetByIdAsync(userId), Times.Once);
+    _mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
+  }
+
+  [Fact]
+  public async Task UpdatePersonalDetail_FailedForbidden()
+  {
+    var user = CreateSampleUser();
+    var request = new UpdateUserProfileRequest { UserId = 1, Firstname = "new name" };
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdateUser(3, request));
+
+    Assert.Equal(403, exception.StatusCode);
+  }
+
+  #endregion
+
 }

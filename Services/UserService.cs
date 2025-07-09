@@ -47,6 +47,8 @@ public class UserService(IUserRepository repo) : IUserService
   {
     User? user = await _userRepo.GetByIdAsync(id);
     if (user == null) return null;
+    if (id != rq.UserId)
+      throw new HttpException("Forbidden", 403, "you do not have access here");
     user.Bio = rq.Bio;
     user.Firstname = rq.Firstname;
     user.Lastname = rq.Lastname;
