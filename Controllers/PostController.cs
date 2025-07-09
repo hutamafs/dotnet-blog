@@ -11,7 +11,7 @@ namespace BlogAPI.Controllers;
 
 [ApiController]
 [Route("api/posts")]
-public class PostController(IPostRepository repo, ILikeService likeService, IPostService service) : ControllerBase
+public class PostController(IPostRepository repo, ILikeService likeService, IPostService service) : BaseApiController
 {
   private readonly IPostService _service = service;
   private readonly IPostRepository _repo = repo;
@@ -21,7 +21,7 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
   [HttpPost]
   public async Task<IActionResult> CreatePost(CreatePostRequest rq)
   {
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    var userId = GetCurrentUserId();
     var validator = new CreatePostValidator(_repo);
     var postData = new CreatePostData
     {
@@ -32,15 +32,7 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
       CategoryId = rq.CategoryId
     };
 
-    var validationResult = await validator.ValidateAsync(postData);
-    if (!validationResult.IsValid)
-    {
-      foreach (var error in validationResult.Errors)
-      {
-        ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-      }
-      return BadRequest(ModelState);
-    }
+    await ValidateRequest(postData, validator);
 
     var post = await _service.CreatePost(postData);
     var response = new ApiResponse<GetPostDetail>(post);
@@ -55,18 +47,10 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
       var posts = await _service.GetAllPosts(query);
       return Ok(new ApiResponse<GetAllDataDto<GetPostDetail>>(posts));
     }
-    catch (HttpException httpEx)
+    catch (HttpException e)
     {
-
-      return StatusCode(httpEx.StatusCode, new ProblemDetails
-      {
-        Title = httpEx.Title,
-        Status = httpEx.StatusCode,
-        Detail = httpEx.Message,
-        Instance = HttpContext.Request.Path
-      });
+      return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
     }
-
   }
 
   [HttpGet("{id:int}")]
@@ -84,6 +68,7 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
     return Ok(new ApiResponse<GetAllDataDto<GetCommentDetail>>(comments));
   }
 
+  [Authorize]
   [HttpPost("{id:int}/like")]
   public async Task<IActionResult> LikePost(int id)
   {
@@ -91,6 +76,7 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
     return Ok(new ApiResponse<object>(null, 200, "post has been liked"));
   }
 
+  [Authorize]
   [HttpDelete("{id:int}/like")]
   public async Task<IActionResult> UnlikePost(int id)
   {
@@ -104,21 +90,14 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+      var userId = GetCurrentUserId();
       var validator = new UpdatePostValidator(_repo);
-      var validationResult = await validator.ValidateAsync(rq);
-      if (!validationResult.IsValid)
-      {
-        foreach (var error in validationResult.Errors)
-        {
-          ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-        }
-        return BadRequest(ModelState);
-      }
+      await ValidateRequest(rq, validator);
 
       var post = await _service.UpdatePost(id, rq);
       if (post == null) return NotFound();
-      if (post.UserId != userId) return ForbiddenPermissionFormat.ResponseFormat(HttpContext);
+      var result = CheckBelongings(post.UserId);
+      if (result != null) return result;
       return Ok(new ApiResponse<GetPostDetail>(post));
     }
     catch (HttpException e)
@@ -128,18 +107,24 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
 
   }
 
+  [Authorize]
   [HttpPatch("{id:int}")]
   public async Task<IActionResult> UpdatePostStatus(int id, [FromBody] UpdatePostStatusRequest rq)
   {
     try
     {
+      var userId = GetCurrentUserId();
+      var foundPost = await _service.GetPostById(id);
+      if (foundPost == null) return NotFound();
+      var result = CheckBelongings(foundPost.UserId);
+      if (result != null) return result;
       var success = await _service.UpdatePostStatus(id, rq.IsPublished);
       if (success == null) return NotFound();
       return Ok(new ApiResponse<object>(null, 200, "Post status updated"));
     }
-    catch (Exception ex)
+    catch (HttpException e)
     {
-      return StatusCode(500, new { error = ex.Message });
+      return ErrorFormat.FormatErrorResponse(e.StatusCode, e.Title, e.Message, HttpContext);
     }
   }
 

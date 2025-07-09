@@ -1,4 +1,5 @@
 using BlogAPI.DTOs;
+using BlogAPI.Helper;
 using BlogAPI.Models;
 using BlogAPI.Repository;
 
@@ -21,17 +22,8 @@ public class CommentService(ICommentRepository commentRepo, IUserRepository user
       PostId = rq.PostId,
     };
     var createdComment = await _commentRepo.PostCommentAsync(comment);
-    var user = await _userRepo.GetByIdAsync(rq.UserId);
 
-    return new GetCommentDetail
-    {
-      Id = createdComment.Id,
-      Author = user?.Username!,
-      Text = createdComment.Text,
-      CommentAt = createdComment.CreatedAt,
-      UpdatedAt = createdComment.UpdatedAt,
-      UserId = createdComment.UserId,
-    };
+    return FormatReturnComment.Map(createdComment);
   }
 
   public async Task<GetCommentDetail?> GetCommentById(int id)
@@ -64,15 +56,8 @@ public class CommentService(ICommentRepository commentRepo, IUserRepository user
       var result = await _commentRepo.UpdateCommentAsync(id, comment);
       if (result == null) return null;
       var user = await _userRepo.GetByIdAsync(comment.UserId);
-      return new GetCommentDetail
-      {
-        Id = id,
-        Author = user?.Username!,
-        Text = comment.Text,
-        CommentAt = comment.CreatedAt,
-        UpdatedAt = comment.UpdatedAt,
-        UserId = user?.Id
-      };
+      if (user == null) return null;
+      return FormatReturnComment.Map(comment);
     }
     catch (System.Exception)
     {

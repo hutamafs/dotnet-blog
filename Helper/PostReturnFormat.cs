@@ -23,19 +23,12 @@ public class FormatReturnPost
       Comments = [.. post.Comments
       .OrderByDescending(p => p.UpdatedAt)
       .Take(20)
-      .Select(c => new GetCommentDetail {
-        Id = c.Id,
-        Text = c.Text,
-        Author = $"{c.User?.Firstname} {c.User?.Lastname}".Trim(),
-        CommentAt = c.CreatedAt,
-        UpdatedAt = c.UpdatedAt,
-        UserId = c.UserId
-      })],
+      .Select(FormatReturnComment.Map)],
       Likes = [ ..post.LikedByUser
       .OrderByDescending(l => l.UpdatedAt)
       .Select(l => new LikeByUserResponse {
         LikedAt = l.CreatedAt,
-        Username = l.User?.Username,
+        Username = l.User?.Username!,
       })
       ]
     };

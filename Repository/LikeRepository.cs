@@ -11,7 +11,7 @@ public class LikeRepository(AppDbContext context) : ILikeRepository
 
   public async Task<bool> FindLike(Like like)
   {
-    return await _context.Likes.AnyAsync(l => l.PostId == like.PostId && l.UserId == like.UserId);
+    return await _context.Likes.AnyAsync(l => (l.PostId == like.PostId) && (l.UserId == like.UserId));
   }
   public async Task LikePost(Like like)
   {

@@ -16,7 +16,11 @@ public class LikeService(ILikeRepository likeRepo) : ILikeService
         PostId = postId,
         UserId = userId,
       };
-      if (!await _likeRepo.FindLike(like)) await _likeRepo.LikePost(like);
+      if (!await _likeRepo.FindLike(like))
+      {
+        await _likeRepo.LikePost(like);
+        return;
+      }
       throw new HttpException("Bad request", 400, "you have liked this post");
     }
     catch (System.Exception)
@@ -36,7 +40,11 @@ public class LikeService(ILikeRepository likeRepo) : ILikeService
         PostId = postId,
         UserId = userId,
       };
-      if (await _likeRepo.FindLike(like)) await _likeRepo.UnlikePost(like);
+      if (await _likeRepo.FindLike(like))
+      {
+        await _likeRepo.UnlikePost(like);
+        return;
+      }
       throw new HttpException("Bad request", 400, "you have not liked this post");
     }
     catch (System.Exception)
