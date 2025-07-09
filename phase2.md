@@ -1,43 +1,68 @@
 ✅ Phase 2: Feature Enhancements & Advanced Capabilities
 
-1. Tags & Many-to-Many Support
-   • Implement tag model (Tag)
-   • Many-to-many between Post and Tag via join table (e.g., PostTag)
-   • Add tag filtering in GetAllPosts
+⸻
 
-2. Soft Delete
-   • Add IsDeleted flag on Post, Comment, possibly User
-   • Override SaveChangesAsync or apply global query filters
+🥇 Top Priority (High Impact – Essential for Production)
 
-3. Post Metrics / Analytics
-   • Track ViewCount, LikeCount, or similar
-   • Consider storing IP/UserAgent/etc. for real analytics (optional)
-
-4. Slug Uniqueness & URL Handling
-   • Auto-generate slugs from title
-   • Ensure uniqueness (add number suffix if duplicate)
-
-5. Role-Based Authorization
-   • Add roles (e.g., Admin, User)
-   • Use [Authorize(Roles = "Admin")] where needed
-   • Control access to editing/deleting posts by other users
-
-6. Global Response Wrapper
-   • Standardize all API responses with status, message, and data
-   • Already started using helper like ErrorFormat.FormatErrorResponse
-
-7. Centralized Logging
-   • Integrate a logging library like Serilog
-   • Log requests, responses, exceptions
-
-8. Environment Configuration
-   • Use appsettings.Development.json, appsettings.Production.json
-   • Hide secrets like JWT secret in environment variables
-
-9. Unit & Integration Testing
+1. 🧪 Unit & Integration Testing
    • Test Services and Repositories
-   • Mock using Moq or similar
-   • Use xUnit or NUnit
+   • Use xUnit and Moq
+   • Validate logic, prevent regressions
 
-10. External API Integration (Mini Feature)
-    • Fetch metadata from a public API (e.g., news, quotes, GitHub) and associate it with a post
+2. 🛡️ Role-Based Authorization
+   • Implement roles (e.g., Admin, User)
+   • Use [Authorize(Roles = "Admin")]
+   • Restrict sensitive actions (e.g., only author can edit post)
+
+3. 🗑️ Soft Delete
+   • Add IsDeleted flag on Post, Comment, optionally User
+   • Exclude deleted items using global filters or query conditions
+
+⸻
+
+🥈 Mid Priority (Improves Dev & User Experience)
+
+4. 🔍 Filtering, Sorting, Pagination Enhancements
+   • Add filtering by category, tags, author, and search keyword
+   • Support page size, order by fields like createdAt, likes
+
+5. 🧾 Centralized Logging
+   • Use Serilog or built-in ILogger
+   • Log key actions and errors
+
+6. ⚙️ Standardized API Responses
+   • Wrap responses with:
+   • status
+   • message
+   • data
+   • Use your helper like ErrorFormat.FormatErrorResponse
+
+⸻
+
+🥉 Lower Priority (Nice-to-Have / Advanced)
+
+7. 🌐 External API Integration
+   • Fetch metadata from public APIs (e.g., news, quotes, GitHub)
+   • Attach to post or dashboard for learning/demo value
+
+8. 🚀 Deployment & Config
+   • Use appsettings.Development.json & Production.json
+   • Store secrets like JWT keys in env variables
+
+⸻
+
+⚙️ Feature-Level Enhancements
+
+• Tags (Many-to-Many)
+• Add Tag model
+• Use PostTag join table
+• Filter posts by tag
+
+• Post Metrics / Analytics
+• Track ViewCount, LikeCount, etc.
+• Optionally log IP / UserAgent
+
+• Slug Generation & Uniqueness
+• Auto-generate slugs from post title
+• Append suffix (e.g., -1, -2) to resolve conflicts
+• Support slug-based GET routes (e.g., /posts/my-title)
