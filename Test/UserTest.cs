@@ -189,6 +189,40 @@ public class UserTest
     Assert.Equal(request.Email, emailClaim);
   }
 
+  [Fact]
+  public async Task Login_Fails_WhenEmailNotFound()
+  {
+    var request = new LoginRequest
+    {
+      Email = "test@mail.com",
+      Password = "hutama"
+    };
+
+    _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync((User?)null);
+
+    var ex = await Assert.ThrowsAsync<HttpException>(() => _jwtService.LoginAndVerifyJwt(request));
+    Assert.Equal(401, ex.StatusCode);
+  }
+
+  [Fact]
+  public async Task Login_Fails_WhenPasswordInvalid()
+  {
+    var request = new LoginRequest
+    {
+      Email = "test@mail.com",
+      Password = "wrongpassword"
+    };
+
+    var user = CreateSampleUser();
+    var hasher = new PasswordHasher<User>();
+    user.PasswordHash = hasher.HashPassword(user, "correctpassword");
+
+    _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync(user);
+
+    var ex = await Assert.ThrowsAsync<HttpException>(() => _jwtService.LoginAndVerifyJwt(request));
+    Assert.Equal(401, ex.StatusCode);
+  }
+
   #endregion
 
 }
