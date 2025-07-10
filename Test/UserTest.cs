@@ -6,20 +6,29 @@ using BlogAPI.Models;
 using BlogAPI.DTOs;
 using Xunit.Abstractions;
 using Microsoft.AspNetCore.Identity;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
-namespace BlogAPI.Tests;
+namespace BlogAPI.Test;
 
 public class UserTest
 {
   private readonly Mock<IUserRepository> _mockRepo;
   private readonly ITestOutputHelper _output;
   private readonly UserService _service;
+  private readonly JwtService _jwtService;
+
 
   public UserTest(ITestOutputHelper output)
   {
     _mockRepo = new Mock<IUserRepository>();
     _service = new UserService(_mockRepo.Object);
     _output = output;
+
+    var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-here-must-be-at-least-32-characters-long"));
+    _jwtService = new JwtService(_mockRepo.Object, secretKey);
   }
 
   private static CreateUserRequest GetUserRequest()
@@ -148,6 +157,36 @@ public class UserTest
     var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdateUser(3, request));
 
     Assert.Equal(403, exception.StatusCode);
+  }
+
+  #endregion
+
+  #region Login Test
+  [Trait("Category", "UserService")]
+  [Trait("Method", "Login")]
+  [Fact]
+  public async Task LoginSuccessful()
+  {
+    var request = new LoginRequest
+    {
+      Email = "test@mail.com",
+      Password = "hutama"
+    };
+    var user = CreateSampleUser();
+    var hasher = new PasswordHasher<User>();
+    user.PasswordHash = hasher.HashPassword(user, request.Password);
+    _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync(user);
+
+    var result = await _jwtService.LoginAndVerifyJwt(request);
+
+    Assert.NotNull(result);
+    Assert.False(string.IsNullOrEmpty(result.Access_token));
+
+    var handler = new JwtSecurityTokenHandler();
+    var jwt = handler.ReadJwtToken(result.Access_token);
+    var emailClaim = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+
+    Assert.Equal(request.Email, emailClaim);
   }
 
   #endregion

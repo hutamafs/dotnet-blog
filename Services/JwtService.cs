@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using BlogAPI.DTOs;
 using BlogAPI.Models;
 using BlogAPI.Repository;
