@@ -1,3 +1,4 @@
+using Xunit;
 using Moq;
 using BlogAPI.Services;
 using BlogAPI.Repository;
@@ -6,27 +7,30 @@ using BlogAPI.DTOs;
 using Xunit.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+// using System.Security.Claims;
+// using Microsoft.IdentityModel.Tokens;
+// using System.Text;
 
 namespace BlogAPI.Test;
 
-public class UserTest
+public class PostTest
 {
-  private readonly Mock<IUserRepository> _mockRepo;
+  private readonly Mock<IPostRepository> _postRepo;
+  private readonly Mock<IUserRepository> _userRepo;
   private readonly ITestOutputHelper _output;
-  private readonly UserService _service;
-  private readonly JwtService _jwtService;
+  private readonly PostService _service;
+  // private readonly JwtService _jwtService;
 
 
-  public UserTest(ITestOutputHelper output)
+  public PostTest(ITestOutputHelper output)
   {
-    _mockRepo = new Mock<IUserRepository>();
-    _service = new UserService(_mockRepo.Object);
+    _postRepo = new Mock<IPostRepository>();
+    _userRepo = new Mock<IUserRepository>();
+    _service = new PostService(_postRepo.Object, _userRepo.Object);
     _output = output;
 
-    var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-here-must-be-at-least-32-characters-long"));
-    _jwtService = new JwtService(_mockRepo.Object, secretKey);
+    // var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-here-must-be-at-least-32-characters-long"));
+    // _jwtService = new JwtService(_mockRepo.Object, secretKey);
   }
 
   private static CreateUserRequest GetUserRequest()
@@ -51,26 +55,130 @@ public class UserTest
 
   private static User CreateSampleUser()
   {
-    return new User { Id = 1, Email = "test@mail.com", Firstname = "Test", Lastname = "User", Bio = "bio" };
+    return new User { Id = 1, Email = "test@mail.com", Firstname = "hutama", Lastname = "saputra", Bio = "bio" };
   }
 
-  #region GetUserDetail Tests
+  private static Post CreateSamplePost()
+  {
+    return new Post
+    {
+      Id = 1,
+      Title = "title",
+      Content = "Content",
+      UserId = 1,
+      CategoryId = 1,
+      Slug = "sample-slug",
+      Category = new Category
+      {
+        Id = 1,
+        Name = "category"
+      }
+    };
+  }
+
+  #region CreatePost Tests
+  [Trait("Category", "PostService")]
+  [Trait("Method", "CreatePost")]
   [Fact]
-  [Trait("Category", "UserService")]
-  [Trait("Method", "GetUserDetail")]
-  public async Task GetUserDetail_ReturnsUser_WhenUserExists()
+  public async Task CreatePost_SuccessCase()
   {
     // Arrange
+    var post = CreateSamplePost();
     var user = CreateSampleUser();
-    _mockRepo.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
+    _userRepo.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
+    _postRepo.Setup(repo => repo.IsUserIdExist(1)).ReturnsAsync(true);
+    _postRepo.Setup(repo => repo.IsCategoryIdExist(1)).ReturnsAsync(true);
+    _postRepo.Setup(repo => repo.CreatePostAsync(post));
+
+    var postData = new CreatePostData
+    {
+      Title = "title",
+      Content = "Content",
+      UserId = 1,
+      CategoryId = 1,
+    };
 
     // Act
-    var result = await _service.GetUserDetail(1);
+    var result = await _service.CreatePost(postData);
 
     // Assert
     Assert.NotNull(result);
-    Assert.Equal("test@mail.com", result.Email);
+    Assert.Equal("title", result.Title);
+    Assert.Equal("Content", result.Content);
+    Assert.Equal(1, result.UserId);
+
+    _postRepo.Verify(r => r.IsUserIdExist(1), Times.Once);
+    _userRepo.Verify(r => r.GetByIdAsync(1), Times.Once);
+    _postRepo.Verify(r => r.CreatePostAsync(It.IsAny<Post>()), Times.Once);
   }
+
+  [Fact]
+  public async Task CreatePost_FailedCase()
+  {
+    // Arrange
+    _postRepo.Setup(repo => repo.IsCategoryIdExist(1)).ReturnsAsync(false);
+    _postRepo.Setup(repo => repo.IsCategoryIdExist(1)).ReturnsAsync(true);
+
+    var postData = new CreatePostData
+    {
+      Title = "title",
+      Content = "Content",
+      UserId = 1,
+      CategoryId = 1,
+    };
+
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.CreatePost(postData));
+
+    // Assert
+    Assert.Equal(404, exception.StatusCode);
+    Assert.Equal("User not found", exception.Message);
+
+  }
+
+  #endregion
+
+  #region GetPostDetail Tests
+  [Fact]
+  [Trait("Category", "PostService")]
+  [Trait("Method", "GetPostDetail")]
+  public async Task GetPostDetail_SuccessCase()
+  {
+    // Arrange
+    var user = CreateSampleUser();
+    var post = CreateSamplePost();
+    post.User = user;
+    _postRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(post);
+    _userRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+
+    // Act
+    var result = await _service.GetPostById(1);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.Equal(1, result.Id);
+    Assert.Equal(1, result.UserId);
+    Assert.Equal("title", result.Title);
+    Assert.Equal("sample-slug", result.Slug);
+    Assert.Equal("hutama saputra", result.Author);
+    Assert.Equal("category", result.CategoryName);
+
+    _postRepo.Verify(r => r.GetByIdAsync(1), Times.Once);
+  }
+
+  [Fact]
+  public async Task GetPostDetail_FailedCase()
+  {
+    var post = CreateSamplePost();
+    _postRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(post);
+    var result = await _service.GetPostById(999);
+
+    Assert.Null(result);
+    _postRepo.Verify(r => r.GetByIdAsync(999), Times.Once);
+  }
+
+  #endregion
+
+  /*
 
   [Fact]
   [Trait("Category", "UserService")]
@@ -102,6 +210,7 @@ public class UserTest
     Assert.Equal("Email already in use", exception.Message);
   }
 
+  
   [Fact]
   [Trait("Category", "UserService")]
   [Trait("Method", "CreateUser")]
@@ -125,6 +234,9 @@ public class UserTest
   }
 
   #endregion
+  */
+
+  /*
 
   #region UpdateUser Tests
   [Trait("Category", "UserService")]
@@ -222,5 +334,6 @@ public class UserTest
   }
 
   #endregion
+  */
 
 }
