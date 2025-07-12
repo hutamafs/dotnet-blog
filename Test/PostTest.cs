@@ -178,63 +178,40 @@ public class PostTest
 
   #endregion
 
-  /*
-
+  #region GetAllPosts Tests
   [Fact]
-  [Trait("Category", "UserService")]
-  [Trait("Method", "GetUserDetail")]
-  public async Task GetUserDetail_ReturnsNull_WhenUserNotExists()
+  [Trait("Category", "PostService")]
+  [Trait("Method", "GetAllPosts")]
+  public async Task GetAllPosts_SuccessCase()
   {
-    var user = CreateSampleUser();
-    _mockRepo.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
+    // Arrange
+    var posts = new List<Post>
+    {
+      new Post { Id = 1, Title = "Post 1", IsPublished = true, UserId=1, Content="content",  CategoryId = 1, Comments=[] },
+      new Post { Id = 2, Title = "Post 2", IsPublished = true, UserId=1, Content="content",  CategoryId = 2 },
+    };
 
-    var result = await _service.GetUserDetail(2);
+    var param = new PostQueryParamDto { Take = 2 };
 
-    Assert.Null(result);
-  }
+    _postRepo.Setup(r => r.GetAllPosts(param)).ReturnsAsync(new GetAllDataDto<Post>
+    {
+      PageNumber = 1,
+      TotalPages = 1,
+      Total = 2,
+      Data = posts
+    });
 
-  #endregion
+    // Act
+    var result = await _service.GetAllPosts(param);
 
-  #region RegisterUser Tests
-
-  [Fact]
-  [Trait("Category", "UserService")]
-  [Trait("Method", "CreateUser")]
-  public async Task CreateUser_ExistingEmail_Failed()
-  {
-    var UserRequest = GetUserRequest();
-    _mockRepo.Setup(r => r.IsEmailTakenAsync(UserRequest.Email)).ReturnsAsync(true);
-    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.CreateUser(UserRequest));
-
-    Assert.Equal(409, exception.StatusCode);
-    Assert.Equal("Email already in use", exception.Message);
-  }
-
-  
-  [Fact]
-  [Trait("Category", "UserService")]
-  [Trait("Method", "CreateUser")]
-  public async Task CreateUser_ReturnsUserFormat_Successful()
-  {
-    var UserRequest = GetUserRequest();
-    var user = CreateUserFromRequest(UserRequest);
-    _mockRepo.Setup(r => r.IsEmailTakenAsync(UserRequest.Email)).ReturnsAsync(false);
-    _mockRepo.Setup(r => r.IsUsernameTakenAsync(UserRequest.Username)).ReturnsAsync(false);
-    _mockRepo.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
-    _mockRepo.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
-
-    var result = await _service.CreateUser(UserRequest);
-
+    // Assert
     Assert.NotNull(result);
-    Assert.Equal(UserRequest.Email, result.Email);
-    Assert.Equal(UserRequest.Firstname, result.Firstname);
-    Assert.Equal(UserRequest.Lastname, result.Lastname);
+    Assert.Equal(posts.Count, result.Data.Count());
 
-    _mockRepo.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+    _postRepo.Verify(r => r.GetAllPosts(param), Times.Once);
   }
 
   #endregion
-  */
 
   /*
 
