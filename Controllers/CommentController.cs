@@ -17,11 +17,7 @@ public class CommentController(ICommentRepository commentRepo, ICommentService s
   private readonly ICommentRepository _commentRepo = commentRepo;
   private readonly IPostRepository _postRepo = postRepo;
 
-  private static bool IsCommentOwner(GetCommentDetail comment, int userId)
-  {
-    return comment.UserId == userId;
-  }
-
+  [Authorize]
   [HttpPost]
   public async Task<IActionResult> PostComment(CreateUpdateCommentRequest rq)
   {
@@ -41,6 +37,7 @@ public class CommentController(ICommentRepository commentRepo, ICommentService s
     }
   }
 
+  [Authorize]
   [HttpGet("{id:int}")]
   public async Task<IActionResult> GetSingleComment(int id)
   {
@@ -49,6 +46,7 @@ public class CommentController(ICommentRepository commentRepo, ICommentService s
     return Ok(new ApiResponse<GetCommentDetail>(comment));
   }
 
+  [Authorize]
   [HttpPut("{id:int}")]
   public async Task<IActionResult> UpdateComment(int id, [FromBody] CreateUpdateCommentRequest rq)
   {
@@ -73,6 +71,7 @@ public class CommentController(ICommentRepository commentRepo, ICommentService s
 
   }
 
+  [Authorize(Roles = "Admin, User")]
   [HttpDelete("{id:int}")]
   public async Task<IActionResult> DeleteComment(int id)
   {

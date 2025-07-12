@@ -12,6 +12,11 @@ public abstract class BaseApiController : ControllerBase
     return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
   }
 
+  protected string GetCurrentUserRole()
+  {
+    return User.FindFirst(ClaimTypes.Role)?.Value!;
+  }
+
   protected async Task ValidateRequest<TRequest>(TRequest request, IValidator<TRequest> validator)
   {
     var validationResult = await validator.ValidateAsync(request);
@@ -27,7 +32,7 @@ public abstract class BaseApiController : ControllerBase
 
   protected IActionResult? CheckBelongings(int resourceOwnerId)
   {
-    if (resourceOwnerId != GetCurrentUserId()) return ForbiddenPermissionFormat.ResponseFormat(HttpContext);
+    if (resourceOwnerId != GetCurrentUserId() && GetCurrentUserRole() != "Admin") return ForbiddenPermissionFormat.ResponseFormat(HttpContext);
     return null;
   }
 

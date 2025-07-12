@@ -1,5 +1,11 @@
 namespace BlogAPI.Models;
 
+public enum UserRole
+{
+  User,
+  Admin
+}
+
 public class User
 {
 
@@ -24,7 +30,7 @@ public class User
   public string? Bio { get; set; } = "";
   public DateTime CreatedAt { get; set; } = DateTime.Now;
   public DateTime UpdatedAt { get; set; } = DateTime.Now;
-
+  public UserRole Role { get; set; } = UserRole.User;
   public List<Post> Posts { get; set; } = [];
   public List<Like> LikedPosts { get; set; } = [];
 

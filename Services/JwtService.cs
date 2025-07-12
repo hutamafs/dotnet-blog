@@ -21,7 +21,8 @@ public class JwtService(IUserRepository repo, SymmetricSecurityKey jwtKey) : IJw
       Subject = new ClaimsIdentity(
       [
       new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-      new Claim(ClaimTypes.Email, user.Email)
+      new Claim(ClaimTypes.Email, user.Email),
+      new Claim(ClaimTypes.Role, user.Role.ToString())
     ]),
       Expires = DateTime.UtcNow.AddHours(2),
       SigningCredentials = new SigningCredentials(
