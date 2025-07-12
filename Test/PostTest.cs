@@ -182,7 +182,7 @@ public class PostTest
   [Fact]
   [Trait("Category", "PostService")]
   [Trait("Method", "GetAllPosts")]
-  public async Task GetAllPosts_SuccessCase()
+  public async Task GetAllPostsSuccessCase()
   {
     // Arrange
     var posts = new List<Post>
@@ -242,7 +242,7 @@ public class PostTest
 
   [Fact]
   [Trait("Category", "PostService")]
-  [Trait("Method", "GetAllPosts_Error_Database")]
+  [Trait("Method", "GetAllPostsErrorDatabase")]
   public async Task GetAllPosts_InternalError()
   {
     var param = new PostQueryParamDto { };
@@ -256,104 +256,141 @@ public class PostTest
 
   #endregion
 
-  /*
-
-  #region UpdateUser Tests
-  [Trait("Category", "UserService")]
+  #region UpdatePost Tests
+  [Trait("Category", "PostService")]
   [Trait("Method", "UpdatePersonalDetail")]
   [Fact]
-  public async Task UpdatePersonalDetail_Successful()
+  public async Task UpdateOwnPostSuccessful()
   {
     var userId = 1;
-    var user = CreateSampleUser();
-    var request = new UpdateUserProfileRequest { UserId = 1, Firstname = "new name" };
-    _mockRepo.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
-    _mockRepo.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+    var samplePost = CreateSamplePost();
+    var request = new UpdatePostRequest { Title = "title updated", Content = "Content updated", UserId = userId };
+    _postRepo.Setup(r => r.GetByIdAsync(samplePost.Id)).ReturnsAsync(samplePost);
+    _postRepo.Setup(r => r.UpdatePost(samplePost.Id, It.IsAny<Post>())).ReturnsAsync(samplePost);
+    _postRepo.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-    var result = await _service.UpdateUser(userId, request);
+    var result = await _service.UpdatePost(samplePost.Id, request);
 
     Assert.NotNull(result);
-    Assert.Equal(user.Firstname, result.Firstname);
-    _mockRepo.Verify(r => r.GetByIdAsync(userId), Times.Once);
-    _mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
+    Assert.Equal(samplePost.Title, result.Title);
+    Assert.Equal(samplePost.Content, result.Content);
+    _postRepo.Verify(r => r.GetByIdAsync(samplePost.UserId), Times.Once);
+    _postRepo.Verify(r => r.UpdatePost(samplePost.Id, It.IsAny<Post>()), Times.Once);
   }
 
+  [Trait("Category", "PostService")]
+  [Trait("Method", "UpdateNonExistingPost")]
   [Fact]
-  public async Task UpdatePersonalDetail_FailedForbidden()
+  public async Task UpdateNonExistingPost()
   {
-    var user = CreateSampleUser();
-    var request = new UpdateUserProfileRequest { UserId = 1, Firstname = "new name" };
-    _mockRepo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(user);
-    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdateUser(3, request));
+    var request = new UpdatePostRequest { Title = "title updated", Content = "Content updated", UserId = 1 };
+    _postRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Post?)null);
+
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdatePost(999, request));
+
+    Assert.Equal(404, exception.StatusCode);
+    Assert.Equal("post not found", exception.Message);
+  }
+
+  [Trait("Category", "PostService")]
+  [Trait("Method", "UpdateNotExistingCategory")]
+  [Fact]
+  public async Task UpdateNotExistingCategory()
+  {
+    var post = CreateSamplePost();
+    var request = new UpdatePostRequest { Title = "title updated", Content = "Content updated", UserId = 1, CategoryId = 2 };
+    _postRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(post);
+    _postRepo.Setup(r => r.IsCategoryIdExist(2)).ReturnsAsync(false);
+
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdatePost(1, request));
+
+    Assert.Equal(404, exception.StatusCode);
+    Assert.Equal("Category not found", exception.Message);
+  }
+
+  [Trait("Category", "PostService")]
+  [Trait("Method", "UpdateOtherPostDetail")]
+  [Fact]
+  public async Task UpdateOtherPostDetail()
+  {
+    var userId = 2;
+    var samplePost = CreateSamplePost();
+    var request = new UpdatePostRequest { Title = "title updated", Content = "Content updated", UserId = userId };
+    _postRepo.Setup(r => r.GetByIdAsync(samplePost.Id)).ReturnsAsync(samplePost);
+    _postRepo.Setup(r => r.UpdatePost(samplePost.Id, It.IsAny<Post>())).ReturnsAsync(samplePost);
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.UpdatePost(samplePost.Id, request));
 
     Assert.Equal(403, exception.StatusCode);
+    Assert.Equal("you do not have access here", exception.Message);
   }
 
   #endregion
 
-  #region Login Test
-  [Trait("Category", "UserService")]
-  [Trait("Method", "Login")]
-  [Fact]
-  public async Task LoginSuccessful()
-  {
-    var request = new LoginRequest
+  /*
+
+    #region Login Test
+    [Trait("Category", "UserService")]
+    [Trait("Method", "Login")]
+    [Fact]
+    public async Task LoginSuccessful()
     {
-      Email = "test@mail.com",
-      Password = "hutama"
-    };
-    var user = CreateSampleUser();
-    var hasher = new PasswordHasher<User>();
-    user.PasswordHash = hasher.HashPassword(user, request.Password);
-    _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync(user);
+      var request = new LoginRequest
+      {
+        Email = "test@mail.com",
+        Password = "hutama"
+      };
+      var user = CreateSampleUser();
+      var hasher = new PasswordHasher<User>();
+      user.PasswordHash = hasher.HashPassword(user, request.Password);
+      _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync(user);
 
-    var result = await _jwtService.LoginAndVerifyJwt(request);
+      var result = await _jwtService.LoginAndVerifyJwt(request);
 
-    Assert.NotNull(result);
-    Assert.False(string.IsNullOrEmpty(result.Access_token));
+      Assert.NotNull(result);
+      Assert.False(string.IsNullOrEmpty(result.Access_token));
 
-    var handler = new JwtSecurityTokenHandler();
-    var jwt = handler.ReadJwtToken(result.Access_token);
-    var emailClaim = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+      var handler = new JwtSecurityTokenHandler();
+      var jwt = handler.ReadJwtToken(result.Access_token);
+      var emailClaim = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
 
-    Assert.Equal(request.Email, emailClaim);
-  }
+      Assert.Equal(request.Email, emailClaim);
+    }
 
-  [Fact]
-  public async Task Login_Fails_WhenEmailNotFound()
-  {
-    var request = new LoginRequest
+    [Fact]
+    public async Task Login_Fails_WhenEmailNotFound()
     {
-      Email = "test@mail.com",
-      Password = "hutama"
-    };
+      var request = new LoginRequest
+      {
+        Email = "test@mail.com",
+        Password = "hutama"
+      };
 
-    _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync((User?)null);
+      _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync((User?)null);
 
-    var ex = await Assert.ThrowsAsync<HttpException>(() => _jwtService.LoginAndVerifyJwt(request));
-    Assert.Equal(401, ex.StatusCode);
-  }
+      var ex = await Assert.ThrowsAsync<HttpException>(() => _jwtService.LoginAndVerifyJwt(request));
+      Assert.Equal(401, ex.StatusCode);
+    }
 
-  [Fact]
-  public async Task Login_Fails_WhenPasswordInvalid()
-  {
-    var request = new LoginRequest
+    [Fact]
+    public async Task Login_Fails_WhenPasswordInvalid()
     {
-      Email = "test@mail.com",
-      Password = "wrongpassword"
-    };
+      var request = new LoginRequest
+      {
+        Email = "test@mail.com",
+        Password = "wrongpassword"
+      };
 
-    var user = CreateSampleUser();
-    var hasher = new PasswordHasher<User>();
-    user.PasswordHash = hasher.HashPassword(user, "correctpassword");
+      var user = CreateSampleUser();
+      var hasher = new PasswordHasher<User>();
+      user.PasswordHash = hasher.HashPassword(user, "correctpassword");
 
-    _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync(user);
+      _mockRepo.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync(user);
 
-    var ex = await Assert.ThrowsAsync<HttpException>(() => _jwtService.LoginAndVerifyJwt(request));
-    Assert.Equal(401, ex.StatusCode);
-  }
+      var ex = await Assert.ThrowsAsync<HttpException>(() => _jwtService.LoginAndVerifyJwt(request));
+      Assert.Equal(401, ex.StatusCode);
+    }
 
-  #endregion
-  */
+    #endregion
+    */
 
 }
