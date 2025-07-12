@@ -45,14 +45,6 @@ public class PostTest
     };
   }
 
-  private static User CreateUserFromRequest(CreateUserRequest UserRequest)
-  {
-    var hasher = new PasswordHasher<User>();
-    var hashedPassword = hasher.HashPassword(new User(), UserRequest.Password);
-
-    return new User(UserRequest.Username, UserRequest.Email, hashedPassword, UserRequest.Firstname, UserRequest.Lastname, "");
-  }
-
   private static User CreateSampleUser()
   {
     return new User { Id = 1, Email = "test@mail.com", Firstname = "hutama", Lastname = "saputra", Bio = "bio" };
@@ -259,7 +251,7 @@ public class PostTest
 
   #region UpdatePost Tests
   [Trait("Category", "PostService")]
-  [Trait("Method", "UpdatePersonalDetail")]
+  [Trait("Method", "UpdateOwnPost")]
   [Fact]
   public async Task UpdateOwnPostSuccessful()
   {
