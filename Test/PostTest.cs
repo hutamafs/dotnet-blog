@@ -187,8 +187,8 @@ public class PostTest
     // Arrange
     var posts = new List<Post>
     {
-      new Post { Id = 1, Title = "Post 1", IsPublished = true, UserId=1, Content="content",  CategoryId = 1, Comments=[] },
-      new Post { Id = 2, Title = "Post 2", IsPublished = true, UserId=1, Content="content",  CategoryId = 2 },
+      new () { Id = 1, Title = "Post 1", IsPublished = true, UserId=1, Content="content",  CategoryId = 1, Comments=[] },
+      new () { Id = 2, Title = "Post 2", IsPublished = true, UserId=1, Content="content",  CategoryId = 2 },
     };
 
     var param = new PostQueryParamDto { Take = 2 };
@@ -207,8 +207,51 @@ public class PostTest
     // Assert
     Assert.NotNull(result);
     Assert.Equal(posts.Count, result.Data.Count());
+    Assert.Equal(posts[0].Title, result.Data.ToList()[0].Title);
+    Assert.Equal(posts[0].Content, result.Data.ToList()[0].Content);
+    Assert.Equal(posts[0].UserId, result.Data.ToList()[0].UserId);
 
     _postRepo.Verify(r => r.GetAllPosts(param), Times.Once);
+  }
+
+  [Fact]
+  [Trait("Category", "PostService")]
+  [Trait("Method", "GetAllPosts_EmptyResult")]
+  public async Task GetAllPosts_EmptyResult()
+  {
+
+    var param = new PostQueryParamDto { };
+
+    _postRepo.Setup(r => r.GetAllPosts(param)).ReturnsAsync(new GetAllDataDto<Post>
+    {
+      PageNumber = 1,
+      TotalPages = 1,
+      Total = 0,
+      Data = []
+    });
+
+    // Act
+    var result = await _service.GetAllPosts(param);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.Equal(0, result.Total);
+
+    _postRepo.Verify(r => r.GetAllPosts(param), Times.Once);
+  }
+
+  [Fact]
+  [Trait("Category", "PostService")]
+  [Trait("Method", "GetAllPosts_Error_Database")]
+  public async Task GetAllPosts_InternalError()
+  {
+    var param = new PostQueryParamDto { };
+    _postRepo.Setup(r => r.GetAllPosts(param)).ThrowsAsync(new Exception("db failure"));
+
+    var exception = await Assert.ThrowsAsync<HttpException>(() => _service.GetAllPosts(param));
+
+    // Assert
+    Assert.Equal(500, exception.StatusCode);
   }
 
   #endregion
