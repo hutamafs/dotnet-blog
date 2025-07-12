@@ -93,7 +93,7 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
       var userId = GetCurrentUserId();
       var validator = new UpdatePostValidator(_repo);
       await ValidateRequest(rq, validator);
-
+      rq.UserId = userId;
       var post = await _service.UpdatePost(id, rq);
       if (post == null) return NotFound();
       var result = CheckBelongings(post.UserId);
@@ -115,11 +115,9 @@ public class PostController(IPostRepository repo, ILikeService likeService, IPos
       var userId = GetCurrentUserId();
       var foundPost = await _service.GetPostById(id);
       if (foundPost == null) return NotFound();
-      var result = CheckBelongings(foundPost.UserId);
-      if (result != null) return result;
-      var success = await _service.UpdatePostStatus(id, rq.IsPublished);
+      var success = await _service.UpdatePostStatus(id, rq.IsPublished, userId);
       if (success == null) return NotFound();
-      return Ok(new ApiResponse<object>(null, 200, "Post status updated"));
+      return Ok(new ApiResponse<object>(null, 200, $"Post status updated to  {(success == true ? "published" : "unpublished")}"));
     }
     catch (HttpException e)
     {

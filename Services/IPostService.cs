@@ -9,7 +9,7 @@ public interface IPostService
   Task<Post?> GetPostModelById(int id);
   Task<GetPostDetail> CreatePost(CreatePostData rq);
   Task<GetPostDetail?> UpdatePost(int id, UpdatePostRequest rq);
-  Task<bool?> UpdatePostStatus(int id, bool status);
+  Task<bool?> UpdatePostStatus(int id, bool status, int userId);
 
   Task<GetAllDataDto<GetCommentDetail>> GetCommentsForPost(int id, CommentQueryParamDto query);
 

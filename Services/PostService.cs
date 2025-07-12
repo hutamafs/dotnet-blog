@@ -10,8 +10,6 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
   private readonly IPostRepository _postRepo = postRepo;
   private readonly IUserRepository _userRepo = userRepo;
 
-
-
   private async Task<bool> CheckUserExists(int id)
   {
     var userExists = await _postRepo.IsUserIdExist(id);
@@ -48,16 +46,21 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
 
       return FormatReturnPost.Map(post, user!);
     }
+    catch (HttpException)
+    {
+      throw;
+    }
     catch (Exception ex)
     {
       throw new HttpException("error", 500, ex.Message);
     }
   }
 
-  public async Task<GetAllDataDto<GetPostDetail>> GetAllPosts(PostQueryParamDto q)
+  public async Task<GetAllDataDto<GetPostDetail>> GetAllPosts(PostQueryParamDto? q)
   {
     try
     {
+      q ??= new PostQueryParamDto();
       var result = await _postRepo.GetAllPosts(q);
       var posts = result.Data.Select(p => FormatReturnPost.Map(p, p.User!));
       return new GetAllDataDto<GetPostDetail>
@@ -85,12 +88,13 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
   {
     try
     {
-      var foundPost = await _postRepo.GetByIdAsync(id);
+      var foundPost = await _postRepo.GetByIdAsync(id) ?? throw new HttpException("Not found", 404, "post not found");
+      if (id != rq.UserId)
+        throw new HttpException("Forbidden", 403, "you do not have access here");
       if (rq.CategoryId.HasValue)
       {
         await CheckCategoryExists(rq.CategoryId.Value);
       }
-      if (foundPost == null) return null;
 
       Post post = new()
       {
@@ -106,6 +110,10 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
       if (result == null) return null;
       return FormatReturnPost.Map(result, result.User!);
     }
+    catch (HttpException)
+    {
+      throw;
+    }
     catch
     {
       throw new HttpException("error", 500, "failed to update the post");
@@ -117,18 +125,20 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     return await _postRepo.GetByIdAsync(id);
   }
 
-  public async Task<bool?> UpdatePostStatus(int id, bool IsPublished)
+  public async Task<bool?> UpdatePostStatus(int id, bool IsPublished, int userId)
   {
     try
     {
       var post = await _postRepo.GetByIdAsync(id);
       if (post == null) return null;
+      if (post?.UserId != userId)
+        throw new HttpException("Forbidden", 403, "you do not have access here");
 
       post.IsPublished = IsPublished;
       post.UpdatedAt = DateTime.Now;
       post.PublishedAt = DateTime.Now;
       await _postRepo.SaveChangesAsync();
-      return true;
+      return post.IsPublished;
     }
     catch
     {
