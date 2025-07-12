@@ -13,6 +13,7 @@ public class CreateUserRequest
 
 public class UpdateUserProfileRequest
 {
+  public required int UserId { get; set; }
   public required string Firstname { get; set; }
   public string? Lastname { get; set; }
   public string? Bio { get; set; }

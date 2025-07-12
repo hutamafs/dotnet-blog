@@ -1,27 +1,31 @@
-🔜 Next Priority
+Testing List
 
-Let’s go in this order:
+🔍 Tests to Write (Phase 1 and 2)
 
-1. Authentication
-   • 🔒 Login (POST /api/auth/login)
-   • ✅ You already hash passwords — now verify them and return a JWT.
-   • Create AuthController, LoginRequestDto, JwtService.
+🧑‍💻 UserService
+• GetUserDetail (valid + invalid)
+• RegisterUser (validation, duplicate email)
+• UpdateSelfDetail (valid + forbidden update)
+• Authentication (login - valid/invalid)
 
-2. Authorization
-   • Restrict protected routes (e.g. POST /posts, PATCH /posts/{id}) so only logged-in users can access them.
-   • Optional: only the owner of a post can edit/delete it.
+📝 PostService
+• CreatePost (valid request, invalid request)
+• GetPostById (with/without slug, with user include)
+• GetAllPosts (pagination, filtering, only published)
+• UpdatePost (owned + not owned)
+• Soft delete or unpublish
 
-3. User Profile
-   • GET /api/users/me – Get profile from token
-   • PATCH /api/users/me – Update own profile (bio, name, etc.)
+💬 CommentService
+• AddComment (valid + invalid + unauthorized)
+• GetCommentsByPostId
+• DeleteComment (if owner only)
 
-4. Categories & Tags
-   • CRUD categories (admin-only if roles exist)
-   • Associate multiple tags per post (many-to-many)
-   • Include tags in Post detail
+👍 LikeService
+• LikePost (if not liked)
+• LikePost (already liked → 400)
+• UnlikePost (not liked → 400)
 
-5. Comments
-   • Allow authenticated users to:
-   • Create comment on post
-   • Get comments for a post
-   • Optional: update/delete own comment
+🏷️ Tags + Categories
+• Assign tags to post
+• Get posts by tag
+• Create/update/delete tag/category

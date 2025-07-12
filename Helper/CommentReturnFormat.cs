@@ -11,7 +11,7 @@ public class FormatReturnComment
     {
       Id = c.Id,
       Text = c.Text,
-      Author = $"{c.User?.Firstname} {c.User?.Lastname}".Trim(),
+      Author = c.User == null ? "unknown" : $"{c.User?.Firstname} {c.User?.Lastname}".Trim(),
       CommentAt = c.CreatedAt,
       UpdatedAt = c.UpdatedAt,
       UserId = c.UserId

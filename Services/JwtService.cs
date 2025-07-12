@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using BlogAPI.DTOs;
 using BlogAPI.Models;
 using BlogAPI.Repository;
@@ -36,32 +35,21 @@ public class JwtService(IUserRepository repo, SymmetricSecurityKey jwtKey) : IJw
 
   public async Task<LoginResponse?> LoginAndVerifyJwt(LoginRequest rq)
   {
-    try
+    var foundUser = await _repo.GetByEmailAsync(rq.Email) ?? throw new HttpException("Unauthorized", 401, "email not found");
+    ;
+    var hasher = new PasswordHasher<User>();
+    var verificationResult = hasher.VerifyHashedPassword(foundUser, foundUser.PasswordHash, rq.Password);
+    if (verificationResult == PasswordVerificationResult.Success)
     {
-      var foundUser = await _repo.GetByEmailAsync(rq.Email) ?? throw new HttpException("Unauthorized", 401, "email not found");
-      ;
-      var hasher = new PasswordHasher<User>();
-      var verificationResult = hasher.VerifyHashedPassword(foundUser, foundUser.PasswordHash, rq.Password);
-      if (verificationResult == PasswordVerificationResult.Success)
+      var token = GenerateJwtToken(foundUser);
+      if (!string.IsNullOrEmpty(token)) return new LoginResponse
       {
-        var token = GenerateJwtToken(foundUser);
-        if (!string.IsNullOrEmpty(token)) return new LoginResponse
-        {
-          Email = rq.Email,
-          Access_token = token
-        };
-      }
-      throw new HttpException("Unauthorized", 401, "Invalid Password");
+        Email = rq.Email,
+        Access_token = token
+      };
+    }
+    throw new HttpException("Unauthorized", 401, "Invalid Password");
 
-    }
-    catch (HttpException)
-    {
 
-      throw;
-    }
-    catch (Exception)
-    {
-      throw new HttpException("Internal Server Error", 500, "Login failed");
-    }
   }
 }

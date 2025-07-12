@@ -29,14 +29,21 @@ public class PostRepository(AppDbContext context) : IPostRepository
     return await _context.SaveChangesAsync() > 0;
   }
 
-  async Task<GetAllDataDto<Post>> IPostRepository.GetAllPosts(PostQueryParamDto query)
+  async Task<GetAllDataDto<Post>> IPostRepository.GetAllPosts(PostQueryParamDto? query)
   {
+    query ??= new PostQueryParamDto();
+
+    // Set default pagination values
+    var pageNumber = query.PageNumber > 0 ? query.PageNumber : 1;
+    var take = query.Take > 0 ? query.Take : 10;
+
     IQueryable<Post> postQuery = _context.Posts
     .Include(p => p.Category)
     .Include(p => p.User)
     .Include(p => p.LikedByUser)
       .ThenInclude(l => l.User)
-    .Include(p => p.Comments);
+    .Include(p => p.Comments)
+    .Where(p => p.IsPublished);
 
     if (!string.IsNullOrEmpty(query.Q))
     {
@@ -137,7 +144,7 @@ public class PostRepository(AppDbContext context) : IPostRepository
     foundPost.PublishedAt = post.PublishedAt;
     foundPost.UpdatedAt = DateTime.Now;
     await _context.SaveChangesAsync();
-    return post;
+    return foundPost;
   }
 
   public async Task<GetAllDataDto<Comment>> GetCommentsForPost(int id, CommentQueryParamDto query)
