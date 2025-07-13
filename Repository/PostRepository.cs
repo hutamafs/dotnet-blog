@@ -42,8 +42,8 @@ public class PostRepository(AppDbContext context) : IPostRepository
     .Include(p => p.User)
     .Include(p => p.LikedByUser)
       .ThenInclude(l => l.User)
-    .Include(p => p.Comments)
-    .Where(p => p.IsPublished);
+    .Include(p => p.Comments.Where(c => !c.IsDeleted))
+    .Where(p => !p.IsPublished);
 
     if (!string.IsNullOrEmpty(query.Q))
     {

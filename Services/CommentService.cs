@@ -70,7 +70,10 @@ public class CommentService(ICommentRepository commentRepo, IUserRepository user
   {
     try
     {
-      await _commentRepo.DeleteComment(id);
+      var foundComment = await _commentRepo.GetCommentById(id) ?? throw new HttpException("not found", 404, "comment not found");
+      foundComment.IsDeleted = true;
+      foundComment.DeletedAt = DateTime.Now;
+      await _commentRepo.SaveChangesAsync();
     }
     catch (System.Exception)
     {

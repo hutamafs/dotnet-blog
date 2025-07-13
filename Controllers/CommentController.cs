@@ -82,7 +82,7 @@ public class CommentController(ICommentRepository commentRepo, ICommentService s
       if (foundComment == null) return NotFound();
       var result = CheckBelongings(foundComment.UserId);
       if (result != null) return result;
-      await _commentRepo.DeleteComment(id);
+      await _service.DeleteCommentById(id);
       return Ok(new ApiResponse<object>(null, 200, "successfully deleted comment"));
     }
     catch (HttpException e)

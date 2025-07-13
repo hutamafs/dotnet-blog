@@ -151,7 +151,6 @@ public class PostService(IPostRepository postRepo, IUserRepository userRepo) : I
     try
     {
       var response = await _postRepo.GetCommentsForPost(id, query);
-      Console.WriteLine(response.Data);
       var data = response.Data.Select(FormatReturnComment.Map);
       return new GetAllDataDto<GetCommentDetail>
       {
